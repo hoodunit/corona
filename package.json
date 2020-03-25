@@ -1,0 +1,25 @@
+{
+  "name": "corona",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --config webpack.config.js",
+    "build:watch": "npm run build -- --watch --display minimal --display-chunks",
+    "compile": "tsc --project tsconfig.json",
+    "compile:watch": "tsc --project tsconfig.json --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "dependencies": {
+    "@types/react": "^16.9.25",
+    "fp-ts": "^2.5.3",
+    "react": "^16.13.1",
+    "typescript": "^3.8.3",
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11"
+  },
+  "devDependencies": {
+    "source-map-loader": "^0.2.4"
+  }
+}
