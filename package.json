@@ -13,9 +13,11 @@
   "author": "",
   "dependencies": {
     "@types/react": "^16.9.25",
+    "@types/recharts": "^1.8.9",
     "fp-ts": "^2.5.3",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "recharts": "^1.8.5",
     "typescript": "^3.8.3",
     "webpack": "^4.42.1",
     "webpack-cli": "^3.3.11"
