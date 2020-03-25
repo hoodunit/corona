@@ -2,7 +2,7 @@ const webpack = require("webpack")
 const path = require("path")
 
 const config = {
-  mode: "production",
+  mode: "development",
   devtool: "inline-source-map",
   target: "web",
   resolve: {
