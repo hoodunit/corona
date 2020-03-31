@@ -13,12 +13,24 @@ type AppProps = {
   data?: CoronaData
 }
 
-const countries = ["Finland", "Italy", "US", "Sweden"]
+const countries = [
+  "Finland",
+  "Italy",
+  "US",
+  "Sweden",
+  "US-Arizona",
+  "US-Minnesota",
+  "US-New York",
+  "US-Washington",
+]
 const colors = {
   Finland: "#51C9F6",
   Italy: "#C98A25",
   US: "#FFC5CB",
-  Sweden: "green"
+  Sweden: "green",
+  "US-Arizona": "orange",
+  "US-Minnesota": "purple",
+  "US-New York": "gray",
 }
 
   const App: React.FC<AppProps> = (props) => {
