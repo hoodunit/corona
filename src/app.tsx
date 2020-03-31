@@ -22,6 +22,9 @@ const countries = [
   "US-Minnesota",
   "US-New York",
   "US-Washington",
+  "US-Minnesota-Hennepin",
+  "US-Arizona-Coconino",
+  "US-Washington-Clark",
 ]
 const colors = {
   Finland: "#51C9F6",
@@ -31,14 +34,18 @@ const colors = {
   "US-Arizona": "orange",
   "US-Minnesota": "purple",
   "US-New York": "gray",
+  "US-Minnesota-Hennepin": "red",
+  "US-Arizona-Coconino": "pink",
+  "US-Washington-Clark": "blue",
 }
 
   const App: React.FC<AppProps> = (props) => {
   if (!props.data) {
     return <div>Loading</div>
   }
+  window["data"] = props.data
   return (<div>
-    <div className="title">Covid-19 Deaths</div>
+    <div className="title">Covid-19 Deaths (logarithmic)</div>
     <div className="subtitle">Cumulative number of deaths, by number of days since 2nd death</div>
     <div className="chart-wrapper">
       <LogChart

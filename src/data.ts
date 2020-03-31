@@ -31,9 +31,11 @@ export function formatErrors(errors: Array<t.ValidationError>): string {
 export const getData = async (): Promise<CoronaData> => {
   const countries = await getCountries()
   const states = await getStates()
+  const counties = await getCounties()
   return {
     ...states,
     ...countries,
+    ...counties
   }
 }
 
@@ -60,6 +62,33 @@ const parseStates = (csv: string): CoronaData => {
   rows.forEach(row => {
     const [date, state, fips, cases, deaths] = row
     const name = `US-${state}`
+    const dateEntry = {
+      date: parseDate(date),
+      confirmed: parseNumber(cases),
+      deaths: parseNumber(deaths),
+      recovered: null
+    }
+    const stateEntry = result[name] || []
+    result[name] = array.snoc(stateEntry, dateEntry)
+  })
+  return result
+}
+
+export const getCounties = (): Promise<any> => {
+  return fetch("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv")
+    .then(response => response.text())
+    .then(parseCounties)
+}
+
+const parseCounties = (csv: string): CoronaData => {
+  const parsed = Papa.parse(csv).data
+  const rows = array.dropLeft(1)(parsed)
+  const result = {}
+  const parseDate = validateOrThrow(DateFromString)
+  const parseNumber = validateOrThrow(NumberFromString)
+  rows.forEach(row => {
+    const [date, county, state, fips, cases, deaths] = row
+    const name = `US-${state}-${county}`
     const dateEntry = {
       date: parseDate(date),
       confirmed: parseNumber(cases),
