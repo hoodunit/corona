@@ -2,18 +2,20 @@ import { array, option, record } from "fp-ts"
 import { ordNumber } from "fp-ts/es6/Ord"
 import * as NonEmptyArray from "fp-ts/lib/NonEmptyArray"
 import { pipe } from "fp-ts/lib/pipeable"
+import { useState } from "react"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from "recharts"
 import { CoronaData, DateEntry, getData } from "./data"
+import { PlaceSelector } from "./selector"
 
 type AppProps = {
   data?: CoronaData
 }
 
-const countries = [
+const defaultSelected = [
   "Finland",
   "Italy",
   "US",
@@ -43,17 +45,24 @@ const colors = {
   if (!props.data) {
     return <div>Loading</div>
   }
-  window["data"] = props.data
+  window["data"] = props.data;
+  const allSelectable = record.keys(props.data)
+  const [selected, setSelected] = useState(defaultSelected)
   return (<div>
-    <div className="title">Covid-19 Deaths (logarithmic)</div>
-    <div className="subtitle">Cumulative number of deaths, by number of days since 2nd death</div>
+    <div className="title">Covid-19 Deaths</div>
+    <div className="subtitle">Cumulative number of deaths, by number of days since 2nd death (logarithmic)</div>
     <div className="chart-wrapper">
       <LogChart
         data={props.data}
         minDeaths={2}
-        selected={countries}
+        selected={selected}
       />
     </div>
+    <PlaceSelector
+      all={allSelectable}
+      selected={selected}
+      onChange={setSelected}
+    />
   </div>)
 }
 
@@ -86,7 +95,7 @@ const LogChart: React.FC<LogChartProps> = (props) => {
       <Tooltip />
       <Legend
       />
-      { countries.map(key => CountryLine({
+      { props.selected.map(key => CountryLine({
         dataKey: `${key}.deaths`,
         stroke: colors[key]
       }))}
@@ -103,7 +112,7 @@ type CountryLineProps = {
 const CountryLine: React.FC<CountryLineProps> = (props) => {
   return <Line
     key={props.dataKey}
-    type="monotone"
+    type="linear"
     dataKey={props.dataKey}
     stroke={props.stroke}
     strokeWidth={3}
