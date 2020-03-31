@@ -1,8 +1,6 @@
 import { array, option, ord } from "fp-ts"
 import { ordNumber } from "fp-ts/es6/Ord"
 import * as NonEmptyArray from "fp-ts/lib/NonEmptyArray"
-import { Option } from "fp-ts/lib/Option"
-import { max } from "fp-ts/lib/Ord"
 import { pipe } from "fp-ts/lib/pipeable"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
@@ -10,8 +8,6 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from "recharts"
 import { CoronaData, DateEntry, getData } from "./data"
-import * as DateFns from "date-fns/fp"
-import { scaleLog } from "d3-scale"
 
 type AppProps = {
   data?: CoronaData
@@ -22,9 +18,6 @@ const App: React.FC<AppProps> = (props) => {
     return <div>Loading</div>
   }
   const chartData = toChartData(props.data)
-  const maxes = array.map(maxVal)([props.data.Finland, props.data.US, props.data.Italy])
-  const max = Math.max.apply(null, maxes)
-  const yDomain = scaleToMax(max)
   return (
     <LineChart
       width={1000}
@@ -37,22 +30,47 @@ const App: React.FC<AppProps> = (props) => {
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis
         dataKey="day"
-        tickFormatter={(s) => {
-          return DateFns.format("MMM d")(new Date(s))
-        }}
         domain={["auto", "dataMax"]}
       />
       <YAxis
-        // scale="log"
+        domain={["auto", "auto"]}
+        scale="log"
       />
       <Tooltip />
       <Legend
       />
-      <Line type="monotone" dataKey="Finland.deaths" stroke="#8884d8" activeDot={{ r: 8 }} />
-      <Line type="monotone" dataKey="Italy.deaths" stroke="#82ca9d" />
-      <Line type="monotone" dataKey="US.deaths" stroke="#82ca9d" />
+      {CountryLine({
+        dataKey: "Finland.deaths",
+        stroke: "#51C9F6"
+      })
+      }
+      {CountryLine({
+        dataKey: "Italy.deaths",
+        stroke: "#C98A25"
+      })
+      }
+      { CountryLine({
+        dataKey: "US.deaths",
+        stroke: "#FFC5CB"
+      })
+      }
     </LineChart>
   )
+}
+
+type CountryLineProps = {
+  dataKey: string
+  stroke: string
+}
+
+const CountryLine: React.FC<CountryLineProps> = (props) => {
+  return <Line
+    type="monotone"
+    dataKey={props.dataKey}
+    stroke={props.stroke}
+    strokeWidth={3}
+    activeDot={{ r: 8 }}
+  />
 }
 
 type ChartElem = {
@@ -70,7 +88,6 @@ const toChartData = (data: CoronaData): Array<ChartElem> => {
     US: drop(data.US),
   }
   const zipped = zipCountries(cleanedData)
-  console.log(zipped)
   return zipped
 }
 
@@ -88,7 +105,6 @@ function zipWithNulls<T,U>(arr1: Array<T>, arr2: Array<U>): Array<[T | undefined
 
 const zipCountries = (data: CoronaData): Array<ChartElem> => {
   const zipped = zipWithNulls(zipWithNulls(data.Finland, data.US), data.Italy)
-  console.log(zipped)
   const toEntry = (index: number, vals: [[DateEntry?, DateEntry?]?, DateEntry?]) => {
     const Finland = vals[0] && vals[0][0] ? vals[0][0] : undefined
     const US = vals[0] && vals[0][1] ? vals[0][1] : undefined
