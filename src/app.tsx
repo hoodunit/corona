@@ -1,4 +1,8 @@
-import { array } from "fp-ts"
+import { array, option, ord } from "fp-ts"
+import { ordNumber } from "fp-ts/es6/Ord"
+import * as NonEmptyArray from "fp-ts/lib/NonEmptyArray"
+import { Option } from "fp-ts/lib/Option"
+import { max } from "fp-ts/lib/Ord"
 import { pipe } from "fp-ts/lib/pipeable"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
@@ -7,6 +11,7 @@ import {
 } from "recharts"
 import { CoronaData, DateEntry, getData } from "./data"
 import * as DateFns from "date-fns/fp"
+import { scaleLog } from "d3-scale"
 
 type AppProps = {
   data?: CoronaData
@@ -17,10 +22,12 @@ const App: React.FC<AppProps> = (props) => {
     return <div>Loading</div>
   }
   const chartData = toChartData(props.data)
-  console.log(chartData)
+  const maxes = array.map(maxVal)([props.data.Finland, props.data.US, props.data.Italy])
+  const max = Math.max.apply(null, maxes)
+  const yDomain = scaleToMax(max)
   return (
     <LineChart
-      width={1800}
+      width={1000}
       height={600}
       data={chartData}
       margin={{
@@ -29,15 +36,15 @@ const App: React.FC<AppProps> = (props) => {
     >
       <CartesianGrid strokeDasharray="3 3" />
       <XAxis
-        dataKey="dateNum"
+        dataKey="day"
         tickFormatter={(s) => {
           return DateFns.format("MMM d")(new Date(s))
         }}
         domain={["auto", "dataMax"]}
       />
       <YAxis
-        scale="auto"
-        domain={[0, "auto"]} />
+        // scale="log"
+      />
       <Tooltip />
       <Legend
       />
@@ -49,27 +56,115 @@ const App: React.FC<AppProps> = (props) => {
 }
 
 type ChartElem = {
-  date: Date
-  Finland: DateEntry
-  Italy: DateEntry
-  US: DateEntry
+  day: number
+  Finland?: DateEntry
+  Italy?: DateEntry
+  US?: DateEntry
 }
 
 const toChartData = (data: CoronaData): Array<ChartElem> => {
-  const zipped = array.zip(array.zip(data.Finland, data.US), data.Italy)
-  const toEntry = ([[Finland, US], Italy]: any) => {
-    return {
-      date: Finland.date,
-      dateNum: Finland.date.getTime(),
-      Finland,
-      Italy,
-      US
-    }
+  const drop = dropBelow(2)
+  const cleanedData = {
+    Finland: drop(data.Finland),
+    Italy: drop(data.Italy),
+    US: drop(data.US),
   }
-  const mapped = array.map(toEntry)(zipped)
-  const dropped = array.dropLeft(29)(mapped)
-  return dropped
+  const zipped = zipCountries(cleanedData)
+  console.log(zipped)
+  return zipped
 }
+
+function zipWithNulls<T,U>(arr1: Array<T>, arr2: Array<U>): Array<[T | undefined, U | undefined]> {
+  if (arr1.length > arr2.length) {
+    return arr1.map((val, index) => {
+      return [val, arr2[index]]
+    })
+  } else {
+    return arr2.map((val, index) => {
+      return [arr1[index], val]
+    })
+  }
+}
+
+const zipCountries = (data: CoronaData): Array<ChartElem> => {
+  const zipped = zipWithNulls(zipWithNulls(data.Finland, data.US), data.Italy)
+  console.log(zipped)
+  const toEntry = (index: number, vals: [[DateEntry?, DateEntry?]?, DateEntry?]) => {
+    const Finland = vals[0] && vals[0][0] ? vals[0][0] : undefined
+    const US = vals[0] && vals[0][1] ? vals[0][1] : undefined
+    const Italy = vals[1] ? vals[1] : undefined
+    return {
+      day: index,
+      Finland: Finland,
+      Italy: Italy,
+      US: US
+    } as ChartElem
+  }
+  return array.mapWithIndex(toEntry)(zipped)
+}
+
+const dropBelow = (min: number) => (arr: Array<DateEntry>): Array<DateEntry> => {
+  const deathsGreater = (d: DateEntry) => d.deaths !== null && (d.deaths > min)
+  return array.filter(deathsGreater)(arr)
+}
+
+const yAxisScale = (arr: Array<DateEntry>): Array<number> => {
+  return pipe(arr, maxVal, scaleToMax)
+}
+
+const scaleToMax = (max: number): Array<number> => {
+  const roundedMax = roundUp(max)
+  return pipe(
+    array.range(0, 10),
+    array.map(v => v * roundedMax)
+  )
+}
+
+const maxVal = (arr: Array<DateEntry>): number => {
+  const vals = array.map((d: DateEntry) => d.deaths || 0)(arr)
+  const nonEmptyVals = NonEmptyArray.fromArray(vals)
+  const getMax = NonEmptyArray.max(ordNumber)
+  return pipe(
+    nonEmptyVals,
+    option.map(getMax),
+    option.getOrElse(() => 0)
+  )
+}
+
+const roundUp = (val: number) => {
+  const digits = (val + "").length
+  const decade = Math.pow(10, digits - 1)
+  return Math.ceil(val / decade) * decade
+}
+
+const roundUp2 = (val: number) => {
+  if (val < 100) {
+    return 100
+  }
+  if (val < 1000) {
+    return 1000
+  }
+  if (val < 10000) {
+    return 10000
+  }
+  if (val < 100000) {
+    return 100000
+  }
+  if (val < 1000000) {
+    return 1000000
+  }
+  if (val < 10000000) {
+    return 10000000
+  }
+  if (val < 100000000) {
+    return 100000000
+  }
+  return val
+}
+
+// const toLogScale = (arr: Array<DateEntry>): Array<DateEntry> => {
+//
+// }
 
 const startApp = () => {
   const appElem = document.getElementById("app")
