@@ -17,7 +17,25 @@ const App: React.FC<AppProps> = (props) => {
   if (!props.data) {
     return <div>Loading</div>
   }
-  const chartData = toChartData(props.data)
+  return (<div>
+    <div className="title">Covid-19 Deaths</div>
+    <div className="subtitle">Cumulative number of deaths, by number of days since 2nd death</div>
+    <div className="chart-wrapper">
+      <LogChart
+        data={props.data}
+        minDeaths={2}
+      />
+    </div>
+  </div>)
+}
+
+type LogChartProps = {
+  data: CoronaData
+  minDeaths: number
+}
+
+const LogChart: React.FC<LogChartProps> = (props) => {
+  const chartData = toChartData(props.data, props.minDeaths)
   return (
     <LineChart
       width={1000}
@@ -80,8 +98,8 @@ type ChartElem = {
   US?: DateEntry
 }
 
-const toChartData = (data: CoronaData): Array<ChartElem> => {
-  const drop = dropBelow(2)
+const toChartData = (data: CoronaData, minDeaths: number): Array<ChartElem> => {
+  const drop = dropBelow(minDeaths)
   const cleanedData = {
     Finland: drop(data.Finland),
     Italy: drop(data.Italy),

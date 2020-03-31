@@ -1,0 +1,19 @@
+* {
+  font-family: "Roboto", sans-serif;
+}
+
+.title {
+  font-size: 22px;
+  margin: 0 0 22px 0;
+  text-align: center;
+}
+
+.subtitle {
+  text-align: center;
+  margin: 0 0 8px 0;
+}
+
+.chart-wrapper {
+  display: flex;
+  justify-content: center;
+}
