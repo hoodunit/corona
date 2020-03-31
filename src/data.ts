@@ -27,11 +27,7 @@ const DateEntrySpec = t.exact(t.type({
 }))
 export type DateEntry = t.TypeOf<typeof DateEntrySpec>
 
-const CoronaDataSpec = t.exact(t.type({
-  Finland: t.array(DateEntrySpec),
-  Italy: t.array(DateEntrySpec),
-  US: t.array(DateEntrySpec),
-}))
+const CoronaDataSpec = t.record(t.string, t.array(DateEntrySpec))
 export type CoronaData = t.TypeOf<typeof CoronaDataSpec>
 
 const validateOrThrow = <I,A>(decoder: t.Decoder<I,A>, val: I): A => {
