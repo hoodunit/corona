@@ -50,7 +50,7 @@ const colors = {
   const [selected, setSelected] = useState(defaultSelected)
   return (<div>
     <div className="section">
-      <div className="title">Covid-19 Metrics for Relevant Locations</div>
+      <div className="title">Covid-19 Metrics</div>
       <PlaceSelector
         all={allSelectable}
         selected={selected}
