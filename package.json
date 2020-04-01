@@ -17,6 +17,7 @@
     "@types/recharts": "^1.8.9",
     "d3-scale": "^3.2.1",
     "date-fns": "^2.11.0",
+    "fetch-ponyfill": "^6.1.0",
     "fp-ts": "^2.5.3",
     "io-ts": "^2.1.2",
     "io-ts-reporters": "^1.0.0",

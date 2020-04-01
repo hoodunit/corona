@@ -3,6 +3,9 @@ import * as t from "io-ts"
 import * as IoTsReporter from "io-ts-reporters"
 import { DateFromString, NumberFromString } from "./codecs"
 import Papa = require("papaparse")
+import * as fetchPonyfill from "fetch-ponyfill"
+
+const fetchPony = fetchPonyfill({}).fetch
 
 const DateEntrySpec = t.exact(t.type({
   date: DateFromString,
@@ -40,7 +43,7 @@ export const getData = async (): Promise<CoronaData> => {
 }
 
 const getCountries = (): Promise<CoronaData> => {
-  return fetch("https://pomber.github.io/covid19/timeseries.json")
+  return fetchPony("https://pomber.github.io/covid19/timeseries.json")
     .then(response => response.json())
     .then(data => {
       return validateOrThrow(CoronaDataSpec)(data)
@@ -48,7 +51,7 @@ const getCountries = (): Promise<CoronaData> => {
 }
 
 export const getStates = (): Promise<any> => {
-  return fetch("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv")
+  return fetchPony("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv")
     .then(response => response.text())
     .then(parseStates)
 }
@@ -75,7 +78,7 @@ const parseStates = (csv: string): CoronaData => {
 }
 
 export const getCounties = (): Promise<any> => {
-  return fetch("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv")
+  return fetchPony("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv")
     .then(response => response.text())
     .then(parseCounties)
 }
