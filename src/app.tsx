@@ -99,34 +99,62 @@ type LogChartProps = {
 
 const LogChart: React.FC<LogChartProps> = (props) => {
   const chartData = toChartData(props.data, props.selected, props.metric, props.minMetric)
+  const [scale, setScale] = useState<Scale>("log")
   return (
-    <LineChart
-      width={1000}
-      height={600}
-      data={chartData}
-      margin={{
-        top: 5, right: 30, left: 20, bottom: 5,
-      }}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis
-        dataKey="day"
-        domain={["auto", "dataMax"]}
+    <div>
+      <ScaleToggle
+        onToggle={setScale}
+        selected={scale}
       />
-      <YAxis
-        domain={["auto", "auto"]}
-        scale="log"
-      />
-      <Tooltip />
-      <Legend
-      />
-      { props.selected.map(key => CountryLine({
-        dataKey: `${key}.${props.metric}`,
-        stroke: colors[key]
-      }))}
-      }
-    </LineChart>
+      <LineChart
+        width={1000}
+        height={600}
+        data={chartData}
+        margin={{
+          top: 5, right: 30, left: 20, bottom: 5,
+        }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis
+          dataKey="day"
+          domain={["auto", "dataMax"]}
+        />
+        <YAxis
+          domain={["auto", "auto"]}
+          scale={scale}
+        />
+        <Tooltip />
+        <Legend
+        />
+        { props.selected.map(key => CountryLine({
+          dataKey: `${key}.${props.metric}`,
+          stroke: colors[key]
+        }))}
+        }
+      </LineChart>
+    </div>
   )
+}
+
+type ScaleToggleProps = {
+  onToggle: (scale: Scale) => void
+  selected: Scale
+}
+
+type Scale = "linear" | "log"
+
+const ScaleToggle: React.FC<ScaleToggleProps> = (props) => {
+  const otherScale: Scale = props.selected === "linear" ? "log" : "linear"
+  return <div
+    className="scale-toggle"
+    onClick={() => props.onToggle(otherScale)}>{scaleTitle(props.selected)} </div>
+}
+
+const scaleTitle = (scale: Scale): string => {
+  switch(scale) {
+    case "linear": return "Linear"
+    case "log": return "Logarithmic"
+  }
 }
 
 type CountryLineProps = {
