@@ -54,8 +54,9 @@ const colors = {
     <div className="chart-wrapper">
       <LogChart
         data={props.data}
-        minDeaths={2}
         selected={selected}
+        metric="deaths"
+        minMetric={2}
       />
     </div>
     <PlaceSelector
@@ -68,12 +69,13 @@ const colors = {
 
 type LogChartProps = {
   data: CoronaData
-  minDeaths: number
   selected: Array<string>
+  metric: keyof DateEntry
+  minMetric: number
 }
 
 const LogChart: React.FC<LogChartProps> = (props) => {
-  const chartData = toChartData(props.data, props.selected, props.minDeaths)
+  const chartData = toChartData(props.data, props.selected, props.metric, props.minMetric)
   return (
     <LineChart
       width={1000}
@@ -96,7 +98,7 @@ const LogChart: React.FC<LogChartProps> = (props) => {
       <Legend
       />
       { props.selected.map(key => CountryLine({
-        dataKey: `${key}.deaths`,
+        dataKey: `${key}.${props.metric}`,
         stroke: colors[key]
       }))}
       }
@@ -122,8 +124,8 @@ const CountryLine: React.FC<CountryLineProps> = (props) => {
 
 type ChartElem = {}
 
-const toChartData = (data: CoronaData, selected: Array<string>, minDeaths: number): Array<ChartElem> => {
-  const cleaned: CoronaData = record.map(dropBelow(minDeaths))(data)
+const toChartData = (data: CoronaData, selected: Array<string>, metric: string, minMetric: number): Array<ChartElem> => {
+  const cleaned: CoronaData = record.map(dropBelow(metric, minMetric))(data)
   const zipped = zipSelected(cleaned, selected)
   return zipped
 }
@@ -145,9 +147,9 @@ const zipSelected = (data: CoronaData, selected: Array<string>): Array<ChartElem
   )
 }
 
-const dropBelow = (min: number) => (arr: Array<DateEntry>): Array<DateEntry> => {
-  const deathsGreater = (d: DateEntry) => d.deaths !== null && (d.deaths > min)
-  return array.filter(deathsGreater)(arr)
+const dropBelow = (metric: string, min: number) => (arr: Array<DateEntry>): Array<DateEntry> => {
+  const isGreater = (d: DateEntry) => d[metric] !== null && (d[metric] > min)
+  return array.filter(isGreater)(arr)
 }
 
 const maxInArr = (vals: Array<number>): number => {
