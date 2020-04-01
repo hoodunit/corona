@@ -81,6 +81,12 @@ const colors = {
         />
       </div>
     </div>
+    <div className="section">
+      <div className="title">Data Sources</div>
+      <div className="paragraph">Country-level data: <a href="https://github.com/pomber/covid19">https://github.com/pomber/covid19</a></div>
+      <div className="paragraph">State and county-level data: <a href="https://github.com/nytimes/covid-19-data">https://github.com/nytimes/covid-19-data</a></div>
+      <div className="paragraph">Source code: <a href="https://github.com/hoodunit/corona">https://github.com/hoodunit/corona</a></div>
+    </div>
   </div>)
 }
 
