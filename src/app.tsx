@@ -49,21 +49,38 @@ const colors = {
   const allSelectable = record.keys(props.data)
   const [selected, setSelected] = useState(defaultSelected)
   return (<div>
-    <div className="title">Covid-19 Deaths</div>
-    <div className="subtitle">Cumulative number of deaths, by number of days since 2nd death (logarithmic)</div>
-    <div className="chart-wrapper">
-      <LogChart
-        data={props.data}
+    <div className="section">
+      <div className="title">Covid-19 Metrics for Relevant Locations</div>
+      <PlaceSelector
+        all={allSelectable}
         selected={selected}
-        metric="deaths"
-        minMetric={2}
+        onChange={setSelected}
       />
     </div>
-    <PlaceSelector
-      all={allSelectable}
-      selected={selected}
-      onChange={setSelected}
-    />
+    <div className="section">
+      <div className="title">Covid-19 Deaths</div>
+      <div className="subtitle">Cumulative number of deaths, by number of days since 2nd death (logarithmic)</div>
+      <div className="chart-wrapper">
+        <LogChart
+          data={props.data}
+          selected={selected}
+          metric="deaths"
+          minMetric={2}
+        />
+      </div>
+    </div>
+    <div className="section">
+      <div className="title">Covid-19 Confirmed Cases</div>
+      <div className="subtitle">Cumulative number of confirmed cases, by number of days since 50th case (logarithmic)</div>
+      <div className="chart-wrapper">
+        <LogChart
+          data={props.data}
+          selected={selected}
+          metric="confirmed"
+          minMetric={50}
+        />
+      </div>
+    </div>
   </div>)
 }
 

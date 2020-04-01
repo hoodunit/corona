@@ -17,3 +17,11 @@
   display: flex;
   justify-content: center;
 }
+
+.section {
+  margin: 0 0 24px 0;
+}
+
+.section:first-child {
+  margin-top: 0;
+}
