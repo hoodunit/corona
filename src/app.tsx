@@ -41,14 +41,27 @@ const defaultSelected = [
       />
     </div>
     <div className="section">
+      <div className="title">Covid-19 New Deaths</div>
+      <div className="subtitle">New deaths per day, by number of days since first death</div>
+      <div className="subtitle">Empty points are days where no new deaths were recorded </div>
+      <div className="chart-wrapper">
+        <LogChart
+          data={props.data}
+          selected={selected}
+          metric="newDeaths"
+          minMetric={1}
+        />
+      </div>
+    </div>
+    <div className="section">
       <div className="title">Covid-19 Deaths</div>
-      <div className="subtitle">Cumulative number of deaths, by number of days since 2nd death (logarithmic)</div>
+      <div className="subtitle">Cumulative number of deaths, by number of days since 1st death</div>
       <div className="chart-wrapper">
         <LogChart
           data={props.data}
           selected={selected}
           metric="deaths"
-          minMetric={2}
+          minMetric={1}
         />
       </div>
     </div>
