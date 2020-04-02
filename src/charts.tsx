@@ -4,7 +4,7 @@ import * as NonEmptyArray from "fp-ts/lib/NonEmptyArray"
 import { pipe } from "fp-ts/lib/pipeable"
 import { useState } from "react"
 import * as React from "react"
-import { CartesianGrid, Legend, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts"
+import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { CoronaData, DateEntry } from "./data"
 
 const colors = {
@@ -31,37 +31,37 @@ export const LogChart: React.FC<LogChartProps> = (props) => {
   const chartData = toChartData(props.data, props.selected, props.metric, props.minMetric)
   const [scale, setScale] = useState<Scale>("log")
   return (
-    <div>
+    <div className="log-chart-wrapper">
       <ScaleToggle
         onToggle={setScale}
         selected={scale}
       />
-      <LineChart
-        width={1000}
-        height={600}
-        data={chartData}
-        margin={{
-          top: 5, right: 30, left: 20, bottom: 5,
-        }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis
-          dataKey="day"
-          domain={["auto", "dataMax"]}
-        />
-        <YAxis
-          domain={["auto", "auto"]}
-          scale={scale}
-        />
-        <Tooltip />
-        <Legend
-        />
-        { props.selected.map(key => CountryLine({
-          dataKey: `${key}.${props.metric}`,
-          stroke: colors[key]
-        }))}
-        }
-      </LineChart>
+      <ResponsiveContainer width="100%" height={600}>
+        <LineChart
+          data={chartData}
+          margin={{
+            top: 5, right: 30, left: 20, bottom: 5,
+          }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis
+            dataKey="day"
+            domain={["auto", "dataMax"]}
+          />
+          <YAxis
+            domain={["auto", "auto"]}
+            scale={scale}
+          />
+          <Tooltip />
+          <Legend
+          />
+          { props.selected.map(key => CountryLine({
+            dataKey: `${key}.${props.metric}`,
+            stroke: colors[key]
+          }))}
+          }
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   )
 }

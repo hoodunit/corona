@@ -33,3 +33,7 @@
 .scale-toggle {
   cursor: pointer;
 }
+
+.log-chart-wrapper {
+  width: 100%;
+}
