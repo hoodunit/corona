@@ -12,6 +12,7 @@ const colors = {
   Italy: "#C98A25",
   US: "#FFC5CB",
   Sweden: "green",
+  Spain: "black",
   "US-Arizona": "orange",
   "US-Minnesota": "purple",
   "US-New York": "gray",
