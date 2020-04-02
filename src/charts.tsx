@@ -7,18 +7,22 @@ import * as React from "react"
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, ScaleType, Tooltip, XAxis, YAxis } from "recharts"
 import { CoronaData, DateEntry } from "./data"
 
-const colors = {
-  Finland: "#51C9F6",
-  Italy: "#C98A25",
-  US: "#FFC5CB",
-  Sweden: "green",
-  Spain: "black",
-  "US-Arizona": "orange",
-  "US-Minnesota": "purple",
-  "US-New York": "gray",
-  "US-Minnesota-Hennepin": "red",
-  "US-Arizona-Coconino": "pink",
-  "US-Washington-Clark": "blue",
+const colors = ["black", "#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a", "#b15928", "gray"]
+
+const placeColors = {
+  US: colors[0],
+  "United Kingdom": colors[1],
+  Italy: colors[2],
+  Spain: colors[3],
+  Finland: colors[4],
+  Sweden: colors[5],
+  "US-Arizona": colors[6],
+  "US-Minnesota": colors[7],
+  "US-Washington": colors[8],
+  "US-New York": colors[9],
+  "US-Minnesota-Hennepin": colors[10],
+  "US-Arizona-Coconino": colors[11],
+  "US-Washington-Clark": colors[12],
 }
 
 type LogChartProps = {
@@ -58,7 +62,7 @@ export const LogChart: React.FC<LogChartProps> = (props) => {
           />
           { props.selected.map(key => CountryLine({
             dataKey: `${key}.${props.metric}`,
-            stroke: colors[key]
+            stroke: placeColors[key]
           }))}
           }
         </LineChart>

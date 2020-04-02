@@ -11,11 +11,11 @@ type AppProps = {
 }
 
 const defaultSelected = [
-  "Finland",
-  "Italy",
-  "Spain",
   "US",
   "United Kingdom",
+  "Italy",
+  "Spain",
+  "Finland",
   "Sweden",
   "US-Arizona",
   "US-Minnesota",
