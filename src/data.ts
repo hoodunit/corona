@@ -18,6 +18,7 @@ export type DateEntry = {
   deaths: number | null
   recovered: number | null
   newDeaths: number | null
+  newCases: number | null
 }
 
 const fetchPony = fetchPonyfill({}).fetch
@@ -74,9 +75,20 @@ const addNewDeaths = (entries: Array<RawDateEntry>): Array<DateEntry> => {
         }),
       option.getOrElse(() => 0)
     )
+    const newCases = pipe(
+      array.last(cur),
+      option.map((p: RawDateEntry) => {
+        const prevCases = p.confirmed || 0
+        const nextCases = next.confirmed || 0
+        const newC = nextCases - prevCases
+        return newC
+      }),
+      option.getOrElse(() => 0)
+    )
     const updatedNext = {
       ...next,
-      newDeaths
+      newDeaths,
+      newCases
     }
     return array.snoc(cur, updatedNext) as Array<DateEntry>
   })(entries)
