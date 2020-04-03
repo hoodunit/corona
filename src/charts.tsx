@@ -7,6 +7,7 @@ import * as React from "react"
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, ScaleType, Tooltip, XAxis, YAxis } from "recharts"
 import { CoronaData, DateEntry } from "./data"
 import { hashCode } from "./hash"
+import * as DateFns from "date-fns/fp"
 
 const colors = ["black", "#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a", "#b15928", "gray"]
 
@@ -58,7 +59,13 @@ export const LogChart: React.FC<LogChartProps> = (props) => {
             domain={["auto", "auto"]}
             scale={lineScale(scale)}
           />
-          <Tooltip />
+          <Tooltip
+            formatter={(value: any, name: any, props: any) => {
+              const date = props.payload[name].date
+              const fmt = DateFns.format("MMM d")
+              return [`${value} (${fmt(date)})`, name]
+            }}
+          />
           <Legend
           />
           { props.selected.map(key => CountryLine({
