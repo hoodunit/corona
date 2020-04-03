@@ -114,8 +114,8 @@ const CountryLine: React.FC<CountryLineProps> = (props) => {
     dataKey={`${props.key}.${props.metric}`}
     name={props.key}
     stroke={props.stroke}
-    strokeWidth={3}
-    activeDot={{ r: 8 }}
+    strokeWidth={2}
+    activeDot={{ r: 6 }}
   />
 }
 
