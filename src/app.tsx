@@ -1,4 +1,4 @@
-import { record } from "fp-ts"
+import { either, record } from "fp-ts"
 import { useState } from "react"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
@@ -8,6 +8,7 @@ import { PlaceSelector } from "./selector"
 
 type AppProps = {
   data?: CoronaData
+  error?: string
 }
 
 const defaultSelected = [
@@ -26,7 +27,10 @@ const defaultSelected = [
   "US-Washington-Clark",
 ]
 
-  const App: React.FC<AppProps> = (props) => {
+const App: React.FC<AppProps> = (props) => {
+  if (props.error) {
+    return <div>{props.error}</div>
+  }
   if (!props.data) {
     return <div>Loading</div>
   }
@@ -104,8 +108,12 @@ const startApp = () => {
   const appElem = document.getElementById("app")
   ReactDOM.render(<App />, appElem)
   getData()
-    .then(data => {
-      ReactDOM.render(<App data={data} />, appElem)
+    .then(dataResult => {
+      either.fold((error: string) => {
+        ReactDOM.render(<App error={error} />, appElem)
+      }, (data: CoronaData) => {
+        ReactDOM.render(<App data={data} />, appElem)
+      })(dataResult)
     })
 }
 

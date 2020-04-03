@@ -1,20 +1,23 @@
 import { either } from "fp-ts"
-import { Either } from "fp-ts/lib/Either"
+import { Either, right } from "fp-ts/lib/Either"
+import { pipe } from "fp-ts/lib/pipeable"
 import { Errors } from "io-ts"
-
-// represents a Date from an ISO string
+import * as DateFns from "date-fns/fp"
 import * as t from "io-ts"
 
 export const DateFromString = new t.Type<Date, string, unknown>(
   'DateFromString',
   (u): u is Date => u instanceof Date,
   (u, c) => {
-    const validated = t.string.validate(u, c)
-    return either.chain((s) => {
-      const d = new Date(s as any)
-      const result: Either<Errors, Date> = isNaN(d.getTime()) ? t.failure(u, c) : t.success(d)
-      return result
-    })(validated)
+    const validated: Either<Errors, string> = t.string.validate(u, c)
+    return pipe(
+      validated,
+      either.chain((s) => {
+        const parseDate = DateFns.parse(new Date())("yyyy-M-d")
+        const parsed: Either<string, Date> = either.tryCatch(() => parseDate(s as any), e => `${e}`)
+        return either.fold(err => t.failure(err, c), (d: Date) => right(d))(parsed)
+      })
+    )
   },
   a => a.toISOString()
 )

@@ -1,12 +1,15 @@
-import { array, either, nonEmptyArray, option, ord, record } from "fp-ts"
+import { array, either, option, ord, record } from "fp-ts"
 import { pipe } from "fp-ts/es6/pipeable"
+import { sequenceT } from "fp-ts/lib/Apply"
 import { ordNumber } from "fp-ts/lib/Ord"
+import { TaskEither } from "fp-ts/lib/TaskEither"
 import * as t from "io-ts"
-import * as IoTsReporter from "io-ts-reporters"
 import { DateFromString, NumberFromString } from "./codecs"
 import Papa = require("papaparse")
 import * as fetchPonyfill from "fetch-ponyfill"
 import * as DateFns from "date-fns/fp"
+import { Either } from "fp-ts/lib/Either"
+import { validate, validateOrThrow } from "./validation"
 
 export type CoronaData = {
   [k: string]: Array<DateEntry>
@@ -34,33 +37,22 @@ type RawDateEntry = t.TypeOf<typeof RawDateEntrySpec>
 const RawCoronaDataSpec = t.record(t.string, t.array(RawDateEntrySpec))
 export type RawCoronaData = t.TypeOf<typeof RawCoronaDataSpec>
 
-const validateOrThrow = <I,A>(decoder: t.Decoder<I,A>) => (val: I): A => {
-  const onError = (errors: t.Errors) => {
-    throw new Error(formatErrors(errors))
-  }
-  const fold = either.fold(onError, decodedVal => decodedVal as any)
-  const decoded = decoder.decode(val)
-  return fold(decoded)
-}
-
-export function formatErrors(errors: Array<t.ValidationError>): string {
-  return IoTsReporter.reporter(either.left(errors)).join('\n')
-}
-
-export const getData = async (): Promise<CoronaData> => {
-  const countries = await getCountries()
-  const states = await getStates()
-  const counties = await getCounties()
-  const fullData = {
-    ...states,
-    ...countries,
-    ...counties
-  }
-  const sorted = record.map(sortByDate)(fullData)
-  const filled = record.map(fillEmptyEntries)(sorted)
-  const withNewDeaths = record.map(addNewDeaths)(filled)
-  validateEntries(withNewDeaths)
-  return withNewDeaths
+export const getData = async (): Promise<Either<string, CoronaData>> => {
+  const results = await Promise.all([getCountries(), getStates(), getCounties()])
+  const [countriesResult, statesResult, countiesResult]:
+    [Either<string, CoronaData>, Either<string, CoronaData>, Either<string, CoronaData>] = results
+  const result = sequenceT(either.either)(countriesResult, statesResult, countiesResult)
+  return either.chain(([countries, states, counties]: [RawCoronaData, RawCoronaData, RawCoronaData]) => {
+    const fullData: RawCoronaData = {
+      ...states,
+      ...countries,
+      ...counties
+    }
+    const sorted = record.map(sortByDate)(fullData)
+    const filled = record.map(fillEmptyEntries)(sorted)
+    const withNewDeaths = record.map(addNewDeaths)(filled)
+    return either.mapLeft(e => `${e}`)(validateEntries(withNewDeaths))
+  })(result)
 }
 
 const addNewDeaths = (entries: Array<RawDateEntry>): Array<DateEntry> => {
@@ -97,7 +89,13 @@ const addNewDeaths = (entries: Array<RawDateEntry>): Array<DateEntry> => {
 const sortByDate = (entries: Array<RawDateEntry>): Array<RawDateEntry> => {
   const byDate = pipe(
     ordNumber,
-    ord.contramap((d: RawDateEntry) => d.date.getTime())
+    ord.contramap((d: RawDateEntry) => {
+      if (!d.date) {
+        console.log(entries)
+        throw new Error(`Error: ${JSON.stringify(d)}`)
+      }
+      return d.date.getTime()
+    })
   )
   return array.sort(byDate)(entries)
 }
@@ -129,35 +127,40 @@ const fillEmptyEntries = (entries: Array<RawDateEntry>): Array<RawDateEntry> => 
   return fillEntries(entries)
 }
 
-const validateEntries = (data: CoronaData) => {
-  record.mapWithIndex(validateEntry)(data)
+const validateEntries = (data: CoronaData): Either<Error, CoronaData> => {
+  return either.tryCatch(() => {
+    record.mapWithIndex(validateEntry)(data)
+    return data
+  }, either.toError)
+
 }
 
 const validateEntry = (key: string, vals: Array<DateEntry>): void => {
   let prev: DateEntry | undefined = undefined
-  vals.forEach((next, index) => {
+  for (let i = 0; i < vals.length; i++){
+    const next = vals[i]
     if (prev && DateFns.isAfter(next.date, prev.date)) {
-      throw new Error(`At ${key}[${index}]: expected ${prev.date} to be before ${next.date}`)
+      throw new Error(`At ${key}[${i}]: expected ${prev.date} to be before ${next.date}`)
     }
     if (prev && DateFns.differenceInDays(prev.date, next.date) > 1) {
-      throw new Error(`At ${key}[${index}]: expected ${prev.date} to be within one day of ${next.date}`)
+      throw new Error(`At ${key}[${i}]: expected ${prev.date} to be within one day of ${next.date}`)
     }
     prev = next
-  })
+  }
 }
 
-const getCountries = (): Promise<RawCoronaData> => {
+const getCountries: TaskEither<string, RawCoronaData> = () => {
   return fetchPony("https://pomber.github.io/covid19/timeseries.json")
     .then(response => response.json())
     .then(data => {
-      return validateOrThrow(RawCoronaDataSpec)(data)
-    })
+      return validate(RawCoronaDataSpec)(data)
+   })
 }
 
-export const getStates = (): Promise<any> => {
+export const getStates: TaskEither<string, RawCoronaData> = () => {
   return fetchPony("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv")
     .then(response => response.text())
-    .then(parseStates)
+    .then(r => either.tryCatch(() => parseStates(r), e => `${e}`))
 }
 
 const parseStates = (csv: string): RawCoronaData => {
@@ -184,7 +187,7 @@ const parseStates = (csv: string): RawCoronaData => {
 export const getCounties = (): Promise<any> => {
   return fetchPony("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv")
     .then(response => response.text())
-    .then(parseCounties)
+    .then(r => either.tryCatch(() => parseCounties(r), e => `${e}`))
 }
 
 const parseCounties = (csv: string): RawCoronaData => {
