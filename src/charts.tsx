@@ -116,6 +116,7 @@ const CountryLine: React.FC<CountryLineProps> = (props) => {
     stroke={props.stroke}
     strokeWidth={2}
     activeDot={{ r: 6 }}
+    connectNulls
   />
 }
 
