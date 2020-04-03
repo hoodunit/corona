@@ -19,7 +19,9 @@ export const DateFromString = new t.Type<Date, string, unknown>(
       })
     )
   },
-  a => a.toISOString()
+  date => {
+    return DateFns.format("yyyy-M-d", date)
+  }
 )
 
 export interface NumberFromStringC extends t.Type<number, string, unknown> {}
