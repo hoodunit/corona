@@ -62,7 +62,8 @@ export const LogChart: React.FC<LogChartProps> = (props) => {
           <Legend
           />
           { props.selected.map(key => CountryLine({
-            dataKey: `${key}.${props.metric}`,
+            key,
+            metric: props.metric,
             stroke: placeColors[key] ?? colors[hashCode(key) % colors.length]
           }))}
           }
@@ -101,15 +102,17 @@ const lineScale = (scale: Scale): ScaleType => {
 }
 
 type CountryLineProps = {
-  dataKey: string
+  key: string
+  metric: string
   stroke: string
 }
 
 const CountryLine: React.FC<CountryLineProps> = (props) => {
   return <Line
-    key={props.dataKey}
+    key={props.key}
     type="linear"
-    dataKey={props.dataKey}
+    dataKey={`${props.key}.${props.metric}`}
+    name={props.key}
     stroke={props.stroke}
     strokeWidth={3}
     activeDot={{ r: 8 }}
