@@ -4,11 +4,13 @@ import * as React from "react"
 import * as ReactDOM from "react-dom"
 import { LogChart } from "./charts"
 import { CoronaData, getData } from "./data"
+import { decodeRoute, encodeRoute, Route } from "./route"
 import { PlaceSelector } from "./selector"
 
 type AppProps = {
   data?: CoronaData
   error?: string
+  route: Route
 }
 
 const defaultSelected = [
@@ -27,6 +29,10 @@ const defaultSelected = [
   "US-Washington-Clark",
 ]
 
+const defaultRoute = {
+  selected: defaultSelected
+}
+
 const App: React.FC<AppProps> = (props) => {
   if (props.error) {
     return <div>{props.error}</div>
@@ -36,7 +42,8 @@ const App: React.FC<AppProps> = (props) => {
   }
   window["data"] = props.data;
   const allSelectable = record.keys(props.data)
-  const [selected, setSelected] = useState(defaultSelected)
+  const [selected, setSelected] = useState(props.route.selected)
+  window.location.hash = encodeRoute({selected})
   return (<div>
     <div className="section">
       <div className="title">Covid-19 Metrics</div>
@@ -106,13 +113,14 @@ const App: React.FC<AppProps> = (props) => {
 
 const startApp = () => {
   const appElem = document.getElementById("app")
-  ReactDOM.render(<App />, appElem)
+  const route = decodeRoute(window.location.hash, defaultRoute)
+  ReactDOM.render(<App route={route} />, appElem)
   getData()
     .then(dataResult => {
       either.fold((error: string) => {
-        ReactDOM.render(<App error={error} />, appElem)
+        ReactDOM.render(<App route={route} error={error} />, appElem)
       }, (data: CoronaData) => {
-        ReactDOM.render(<App data={data} />, appElem)
+        ReactDOM.render(<App route={route} data={data} />, appElem)
       })(dataResult)
     })
 }
