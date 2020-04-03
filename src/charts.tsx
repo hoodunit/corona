@@ -6,6 +6,7 @@ import { useState } from "react"
 import * as React from "react"
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, ScaleType, Tooltip, XAxis, YAxis } from "recharts"
 import { CoronaData, DateEntry } from "./data"
+import { hashCode } from "./hash"
 
 const colors = ["black", "#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a", "#b15928", "gray"]
 
@@ -62,7 +63,7 @@ export const LogChart: React.FC<LogChartProps> = (props) => {
           />
           { props.selected.map(key => CountryLine({
             dataKey: `${key}.${props.metric}`,
-            stroke: placeColors[key]
+            stroke: placeColors[key] ?? colors[hashCode(key) % colors.length]
           }))}
           }
         </LineChart>
