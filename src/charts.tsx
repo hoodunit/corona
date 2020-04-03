@@ -65,6 +65,7 @@ export const LogChart: React.FC<LogChartProps> = (props) => {
               const fmt = DateFns.format("MMM d")
               return [`${value} (${fmt(date)})`, name]
             }}
+            labelFormatter={(v: any) => `Day ${v}`}
           />
           <Legend
           />
