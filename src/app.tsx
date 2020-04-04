@@ -5,6 +5,7 @@ import * as React from "react"
 import * as ReactDOM from "react-dom"
 import { LogChart } from "./charts"
 import { CoronaData, DateEntry, getData } from "./data"
+import { LoadingIcon } from "./LoadingIcon"
 import { decodeRoute, encodeRoute, Route } from "./route"
 import { SelectionBar } from "./SelectionBar"
 import { smallPlaces } from "./selections"
@@ -27,7 +28,7 @@ const App: React.FC<AppProps> = (props) => {
     return <div>{props.error}</div>
   }
   if (!props.data) {
-    return <div>Loading</div>
+    return <LoadingIcon />
   }
   window["data"] = props.data;
   const allSelectable = record.keys(props.data)
