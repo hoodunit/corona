@@ -1,5 +1,13 @@
 import * as React from "react"
-import { largeAndSmall, epicenters, smallPlaces, usStates, nordicsPlus, europeanUnion } from "./selections"
+import {
+  largeAndSmall,
+  epicenters,
+  smallPlaces,
+  usStates,
+  nordicsPlus,
+  europeanUnion,
+  finlandSweden
+} from "./selections"
 
 const options: Array<SelectionOption> = [
   {label: "Epicenters", selected: epicenters},
@@ -8,6 +16,7 @@ const options: Array<SelectionOption> = [
   {label: "European Union", selected: europeanUnion},
   {label: "Large and small", selected: largeAndSmall},
   {label: "Local areas", selected: smallPlaces},
+  {label: "Finland & Sweden", selected: finlandSweden},
 ]
 
 type SelectionOption = {

@@ -88,6 +88,11 @@ export const usStates = [
   "US-Wyoming",
 ]
 
+export const finlandSweden = [
+  "Finland",
+  "Sweden",
+]
+
 export const nordicsPlus = [
   "Finland",
   "Sweden",
