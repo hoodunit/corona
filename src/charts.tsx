@@ -19,7 +19,22 @@ import { CoronaData, DateEntry } from "./data"
 import { hashCode } from "./hash"
 import * as DateFns from "date-fns/fp"
 
-const colors = ["black", "#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a", "#b15928", "gray"]
+const colors = [
+  "black",
+  "#a6cee3",
+  "#1f78b4",
+  "#b2df8a",
+  "#33a02c",
+  "#fb9a99",
+  "#e31a1c",
+  "#571845",
+  "#fdbf6f",
+  "#ff7f00",
+  "#cab2d6",
+  "#6a3d9a",
+  "#E837B5",
+  "#b15928",
+  "#444444"]
 
 const parseDate = DateFns.parse(new Date())("yyyy-MM-dd")
 
@@ -92,7 +107,8 @@ export const LogChart: React.FC<LogChartProps> = (props) => {
           />
           <Legend />
           { record.keys(props.data).map(key => {
-            const color = placeColors[key] ?? colors[hashCode(key) % colors.length]
+            const hash = hashCode(key) % colors.length
+            const color = placeColors[key] ?? colors[hash]
             return CountryLine({
                 key,
                 metric: props.metric,
