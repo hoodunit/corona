@@ -56,7 +56,6 @@ const App: React.FC<AppProps> = (props) => {
     <div className="section">
       <div className="title">Covid-19 New Deaths</div>
       <div className="subtitle">New deaths per day, by number of days since first death</div>
-      <div className="subtitle">Empty points are days where no new deaths were recorded </div>
       <div className="chart-wrapper">
         <LogChart
           data={props.data}
