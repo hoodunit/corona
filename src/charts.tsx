@@ -54,13 +54,11 @@ const placeColors = {
 
 type LogChartProps = {
   data: CoronaData
-  selected: Array<string>
   metric: keyof DateEntry
-  minMetric: number
 }
 
 export const LogChart: React.FC<LogChartProps> = (props) => {
-  const chartData = toChartData(props.data, props.selected, props.metric, props.minMetric)
+  const chartData = toChartData(props.data, props.metric)
   const [scale, setScale] = useState<Scale>("log")
   return (
     <div className="log-chart-wrapper">
@@ -93,7 +91,7 @@ export const LogChart: React.FC<LogChartProps> = (props) => {
             labelFormatter={(v: any) => `Day ${v}`}
           />
           <Legend />
-          { props.selected.map(key => {
+          { record.keys(props.data).map(key => {
             const color = placeColors[key] ?? colors[hashCode(key) % colors.length]
             return CountryLine({
                 key,
@@ -158,18 +156,18 @@ const CountryLine: React.FC<CountryLineProps> = (props) => {
 
 type ChartElem = {}
 
-const toChartData = (data: CoronaData, selected: Array<string>, metric: string, minMetric: number): Array<ChartElem> => {
-  const cleaned: CoronaData = record.map(dropWhileBelowMetric(metric, minMetric))(data)
+const toChartData = (data: CoronaData, metric: string): Array<ChartElem> => {
   const zeroMetricToNull = (d: DateEntry) => ({...d, [metric]: d[metric] === 0 ? null : d[metric]})
   const zeroToNull = record.map(array.map(zeroMetricToNull))
-  const zeroed = zeroToNull(cleaned)
-  const zipped = zipDays(zeroed, selected)
+  const zeroed = zeroToNull(data)
+  const zipped = zipDays(zeroed)
   return zipped
 }
 
-const zipDays = (data: CoronaData, selected: Array<string>): Array<ChartElem> => {
-  const selectedData = array.map((s: string) => data[s] as Array<DateEntry> | undefined)(selected)
-  const lengths = array.map((d: Array<DateEntry> | undefined) => d?.length ?? 0)(selectedData)
+const zipDays = (data: CoronaData): Array<ChartElem> => {
+  const selected = record.keys(data)
+  const selectedData = record.collect((k: string, v: Array<DateEntry>) => v)(data)
+  const lengths = array.map((d: Array<DateEntry>) => d.length)(selectedData)
   const max = maxInArr(lengths)
   return pipe(
     array.range(0, max),
@@ -185,11 +183,6 @@ const zipDays = (data: CoronaData, selected: Array<string>): Array<ChartElem> =>
       return vals
     })
   )
-}
-
-const dropWhileBelowMetric = (metric: string, min: number) => (arr: Array<DateEntry>): Array<DateEntry> => {
-  const isBelowMetric = (d: DateEntry) => d[metric] !== null && (d[metric] < min)
-  return array.dropLeftWhile(isBelowMetric)(arr)
 }
 
 const maxInArr = (vals: Array<number>): number => {

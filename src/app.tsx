@@ -1,9 +1,10 @@
-import { either, record } from "fp-ts"
+import { array, either, record } from "fp-ts"
+import { eqString } from "fp-ts/lib/Eq"
 import { useState } from "react"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 import { LogChart } from "./charts"
-import { CoronaData, getData } from "./data"
+import { CoronaData, DateEntry, getData } from "./data"
 import { decodeRoute, encodeRoute, Route } from "./route"
 import { SelectionBar } from "./SelectionBar"
 import { smallPlaces } from "./selections"
@@ -32,6 +33,9 @@ const App: React.FC<AppProps> = (props) => {
   const allSelectable = record.keys(props.data)
   const [selected, setSelected] = useState(props.route.selected)
   window.location.hash = encodeRoute({selected})
+  const isSelected = (key: string) => array.elem(eqString)(key, selected)
+  const filterSelected = record.filterWithIndex((index: string, entries: Array<DateEntry>) => isSelected(index))
+  const selectedData = filterSelected(props.data)
   return (<div>
     <div className="section">
       <div className="title">Covid-19 Metrics</div>
@@ -44,13 +48,11 @@ const App: React.FC<AppProps> = (props) => {
     </div>
     <div className="section">
       <div className="title">Covid-19 New Deaths</div>
-      <div className="subtitle">New deaths per day, by number of days since first death</div>
+      <div className="subtitle">New deaths per day, by number of days since 5th death</div>
       <div className="chart-wrapper">
         <LogChart
-          data={props.data}
-          selected={selected}
+          data={record.map(dropWhileBelowCumulative("newDeaths", 5))(selectedData)}
           metric="newDeaths"
-          minMetric={1}
         />
       </div>
     </div>
@@ -59,22 +61,18 @@ const App: React.FC<AppProps> = (props) => {
       <div className="subtitle">New confirmed cases per day, by number of days since 50th case</div>
       <div className="chart-wrapper">
         <LogChart
-          data={props.data}
-          selected={selected}
+          data={record.map(dropWhileBelow("newCases", 50))(selectedData)}
           metric="newCases"
-          minMetric={50}
         />
       </div>
     </div>
     <div className="section">
       <div className="title">Covid-19 Deaths</div>
-      <div className="subtitle">Cumulative number of deaths, by number of days since 1st death</div>
+      <div className="subtitle">Cumulative number of deaths, by number of days since 5th death</div>
       <div className="chart-wrapper">
         <LogChart
-          data={props.data}
-          selected={selected}
+          data={record.map(dropWhileBelow("deaths", 5))(selectedData)}
           metric="deaths"
-          minMetric={1}
         />
       </div>
     </div>
@@ -83,10 +81,8 @@ const App: React.FC<AppProps> = (props) => {
       <div className="subtitle">Cumulative number of confirmed cases, by number of days since 50th case (logarithmic)</div>
       <div className="chart-wrapper">
         <LogChart
-          data={props.data}
-          selected={selected}
+          data={record.map(dropWhileBelow("confirmed", 50))(selectedData)}
           metric="confirmed"
-          minMetric={50}
         />
       </div>
     </div>
@@ -97,6 +93,29 @@ const App: React.FC<AppProps> = (props) => {
       <div className="paragraph">Source code: <a href="https://github.com/hoodunit/corona">https://github.com/hoodunit/corona</a></div>
     </div>
   </div>)
+}
+
+const dropWhileBelow = (metric: string, min: number) => (arr: Array<DateEntry>): Array<DateEntry> => {
+  const isBelowMetric = (d: DateEntry) => d[metric] !== null && (d[metric] < min)
+  return array.dropLeftWhile(isBelowMetric)(arr)
+}
+
+type PartialSum = {
+  entries: Array<DateEntry>
+  sum: number
+}
+
+const dropWhileBelowCumulative = (metric: string, min: number) => (arr: Array<DateEntry>): Array<DateEntry> => {
+  const isBelowMetric = (d: DateEntry) => d[metric] !== null && (d[metric] < min)
+  const drop = ({entries, sum}: PartialSum, next: DateEntry) => {
+    const newSum = sum + (next[metric] || 0)
+    if (newSum < min) {
+      return {entries: [], sum: newSum}
+    }
+    return {entries: entries.concat(next), sum: newSum}
+  }
+  const {entries} = array.reduce({entries: [], sum: 0}, drop)(arr)
+  return entries
 }
 
 const startApp = () => {
