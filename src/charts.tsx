@@ -123,7 +123,8 @@ const CountryLine: React.FC<CountryLineProps> = (props) => {
     name={props.key}
     stroke={props.stroke}
     strokeWidth={2}
-    activeDot={{ r: 6 }}
+    dot={{r: 3, strokeWidth: 1}}
+    activeDot={{ r: 4, stroke: "black", strokeWidth: 1 }}
     connectNulls
   />
 }
