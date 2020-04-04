@@ -4,12 +4,37 @@ import * as NonEmptyArray from "fp-ts/lib/NonEmptyArray"
 import { pipe } from "fp-ts/lib/pipeable"
 import { useState } from "react"
 import * as React from "react"
-import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, ScaleType, Tooltip, XAxis, YAxis } from "recharts"
+import {
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  ScaleType,
+  Tooltip,
+  XAxis,
+  YAxis
+} from "recharts"
 import { CoronaData, DateEntry } from "./data"
 import { hashCode } from "./hash"
 import * as DateFns from "date-fns/fp"
 
 const colors = ["black", "#a6cee3", "#1f78b4", "#b2df8a", "#33a02c", "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a", "#b15928", "gray"]
+
+const parseDate = DateFns.parse(new Date())("yyyy-MM-dd")
+
+const lockdownDates = {
+  "United Kingdom": parseDate("2020-03-24"), // Nation-wide quarantine
+  Italy: parseDate("2020-03-09"), // Nation-wide quarantine
+  Spain: parseDate("2020-03-14"), // Nation-wide quarantine
+  Finland: parseDate("2020-03-18"), // Partial nation-wide quarantine, schools closed
+  France: parseDate("2020-03-16"), // Nation-wide quarantine
+  "US-Florida": parseDate("2020-04-01"), // State-wide quarantine
+  "US-Minnesota": parseDate("2020-03-27"), // State-wide quarantine
+  "US-New York": parseDate("2020-03-22"), // State-wide quarantine
+  "US-Washington": parseDate("2020-03-23"), // State-wide quarantine
+  "US-Arizona": parseDate("2020-03-31"), // State-wide quarantine
+}
 
 const placeColors = {
   US: colors[0],
@@ -67,14 +92,15 @@ export const LogChart: React.FC<LogChartProps> = (props) => {
             }}
             labelFormatter={(v: any) => `Day ${v}`}
           />
-          <Legend
-          />
-          { props.selected.map(key => CountryLine({
-            key,
-            metric: props.metric,
-            stroke: placeColors[key] ?? colors[hashCode(key) % colors.length]
-          }))}
-          }
+          <Legend />
+          { props.selected.map(key => {
+            const color = placeColors[key] ?? colors[hashCode(key) % colors.length]
+            return CountryLine({
+                key,
+                metric: props.metric,
+                stroke: color
+              })
+          })}
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -116,6 +142,7 @@ type CountryLineProps = {
 }
 
 const CountryLine: React.FC<CountryLineProps> = (props) => {
+  const lockdownDate = lockdownDates[props.key]
   return <Line
     key={props.key}
     type="linear"
@@ -123,7 +150,7 @@ const CountryLine: React.FC<CountryLineProps> = (props) => {
     name={props.key}
     stroke={props.stroke}
     strokeWidth={2}
-    dot={{r: 3, strokeWidth: 1}}
+    dot={<Star date={lockdownDate} placeKey={props.key} />}
     activeDot={{ r: 4, stroke: "black", strokeWidth: 1 }}
     connectNulls
   />
@@ -170,4 +197,38 @@ const maxInArr = (vals: Array<number>): number => {
     option.map(getMax),
     option.getOrElse(() => 0)
   )
+}
+
+const Star = (props: any) => {
+  if (!props.value) {
+    return null
+  }
+  const diameter = 3
+  const date = props.date
+  const dataDate = props.payload[props.placeKey]?.date
+  if (date && DateFns.isEqual(date, dataDate)) {
+    return (
+      <svg width={diameter} height={diameter} style={{"overflow": "visible"}}>
+        <text
+          stroke="black"
+          fill={props.stroke}
+          x={props.cx - 7}
+          y={props.cy + 6}>🟊
+        </text>
+      </svg>
+    )
+  } else {
+    const radius = 3
+    const dotDiam = radius * 2
+    return (<svg width={dotDiam} height={dotDiam} style={{"overflow": "visible"}}>
+      <circle
+        cx={props.cx}
+        cy={props.cy}
+        r={radius}
+        stroke={props.stroke}
+       strokeWidth="1"
+        fill="white"
+      />
+    </svg>)
+  }
 }
