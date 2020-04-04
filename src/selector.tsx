@@ -1,6 +1,6 @@
 import { array } from "fp-ts"
 import * as React from "react"
-import Select from "react-select"
+import Select, { ActionMeta } from "react-select"
 
 type PlaceSelectorProps = {
   all: Array<string>
@@ -10,8 +10,8 @@ type PlaceSelectorProps = {
 
 export const PlaceSelector: React.FC<PlaceSelectorProps> = (props) => {
   const options = array.map(mkOption)(props.all)
-  const onChange = (newSelected: any) => {
-    props.onChange(array.map((s: any) => s.value)(newSelected))
+  const onChange = (newSelected: any, action: ActionMeta) => {
+    props.onChange(array.map((s: any) => s.value)(newSelected ?? []))
   }
   return <Select
     value={array.map(mkOption)(props.selected)}

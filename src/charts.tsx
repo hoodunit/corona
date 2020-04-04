@@ -150,7 +150,7 @@ const CountryLine: React.FC<CountryLineProps> = (props) => {
     name={props.key}
     stroke={props.stroke}
     strokeWidth={2}
-    dot={<Star date={lockdownDate} placeKey={props.key} />}
+    dot={dotProps => <Star {...dotProps} date={lockdownDate} placeKey={props.key} />}
     activeDot={{ r: 4, stroke: "black", strokeWidth: 1 }}
     connectNulls
   />
@@ -168,14 +168,17 @@ const toChartData = (data: CoronaData, selected: Array<string>, metric: string, 
 }
 
 const zipDays = (data: CoronaData, selected: Array<string>): Array<ChartElem> => {
-  const selectedData = array.map((s: string) => data[s] as Array<DateEntry>)(selected)
-  const lengths = array.map((d: Array<DateEntry>) => d.length)(selectedData)
+  const selectedData = array.map((s: string) => data[s] as Array<DateEntry> | undefined)(selected)
+  const lengths = array.map((d: Array<DateEntry> | undefined) => d?.length ?? 0)(selectedData)
   const max = maxInArr(lengths)
   return pipe(
     array.range(0, max),
     array.map(index => {
       const vals = {}
       selected.forEach(key => {
+        if (!data[key]) {
+          throw new Error(`Missing data for key '${key}'`)
+        }
         vals[key] = data[key][index]
       })
       vals["day"] = index
@@ -226,8 +229,8 @@ const Star = (props: any) => {
         cy={props.cy}
         r={radius}
         stroke={props.stroke}
-       strokeWidth="1"
-        fill="white"
+        strokeWidth="1"
+        fill={props.stroke}
       />
     </svg>)
   }

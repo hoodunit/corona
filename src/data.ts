@@ -63,7 +63,9 @@ const addNewDeaths = (entries: Array<RawDateEntry>): Array<DateEntry> => {
         const prevDeaths = p.deaths || 0
         const nextDeaths = next.deaths || 0
         const newD = nextDeaths - prevDeaths
-        return newD
+        // Correcting for a possible data issue
+        // This should be handled more properly
+        return (newD > 0 ? newD : 0)
         }),
       option.getOrElse(() => 0)
     )
@@ -73,7 +75,9 @@ const addNewDeaths = (entries: Array<RawDateEntry>): Array<DateEntry> => {
         const prevCases = p.confirmed || 0
         const nextCases = next.confirmed || 0
         const newC = nextCases - prevCases
-        return newC
+        // Correcting for a possible data issue
+        // This should be handled more properly
+        return (newC > 0 ? newC : 0)
       }),
       option.getOrElse(() => 0)
     )
@@ -145,6 +149,12 @@ const validateEntry = (key: string, vals: Array<DateEntry>): void => {
     if (prev && DateFns.differenceInDays(prev.date, next.date) > 1) {
       throw new Error(`At ${key}[${i}]: expected ${prev.date} to be within one day of ${next.date}`)
     }
+    // if (prev && prev.confirmed && next.confirmed && prev.confirmed > next.confirmed) {
+    //   throw new Error(`At ${key}[${i}]: expected previous confirmed ${prev.confirmed} to be less than or equal to next confirmed ${next.confirmed}`)
+    // }
+    // if (prev && prev.deaths && next.deaths && prev.deaths > next.deaths) {
+    //   throw new Error(`At ${key}[${i}]: expected previous deaths ${prev.deaths} to be less than or equal to next deaths ${next.deaths}`)
+    // }
     prev = next
   }
 }

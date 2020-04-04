@@ -5,6 +5,8 @@ import * as ReactDOM from "react-dom"
 import { LogChart } from "./charts"
 import { CoronaData, getData } from "./data"
 import { decodeRoute, encodeRoute, Route } from "./route"
+import { SelectionBar } from "./SelectionBar"
+import { smallPlaces } from "./selections"
 import { PlaceSelector } from "./selector"
 
 type AppProps = {
@@ -13,21 +15,7 @@ type AppProps = {
   route: Route
 }
 
-const defaultSelected = [
-  "US",
-  "United Kingdom",
-  "Italy",
-  "Spain",
-  "Finland",
-  "Sweden",
-  "US-Arizona",
-  "US-Minnesota",
-  "US-New York",
-  "US-Washington",
-  "US-Minnesota-Hennepin",
-  "US-Arizona-Coconino",
-  "US-Washington-Clark",
-]
+const defaultSelected = smallPlaces
 
 const defaultRoute = {
   selected: defaultSelected
@@ -47,6 +35,7 @@ const App: React.FC<AppProps> = (props) => {
   return (<div>
     <div className="section">
       <div className="title">Covid-19 Metrics</div>
+      <SelectionBar onSelected={setSelected} />
       <PlaceSelector
         all={allSelectable}
         selected={selected}
