@@ -228,7 +228,7 @@ const Star = (props: any) => {
           stroke="black"
           fill={props.stroke}
           x={props.cx - 7}
-          y={props.cy + 6}>🟊
+          y={props.cy + 6}>{"\u2605"}
         </text>
       </svg>
     )
