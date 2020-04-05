@@ -88,6 +88,16 @@ const App: React.FC<AppProps> = (props) => {
       </div>
     </div>
     <div className="section">
+      <div className="title">Covid-19 Confirmed Recoveries</div>
+      <div className="subtitle">Cumulative number of confirmed recoveries, by number of days since 50th recovery (logarithmic)</div>
+      <div className="chart-wrapper">
+        <LogChart
+          data={record.map(dropWhileBelow("recovered", 50))(selectedData)}
+          metric="confirmed"
+        />
+      </div>
+    </div>
+    <div className="section">
       <div className="title">Data Sources</div>
       <div className="paragraph">Country-level data: <a href="https://github.com/pomber/covid19">https://github.com/pomber/covid19</a></div>
       <div className="paragraph">State and county-level data: <a href="https://github.com/nytimes/covid-19-data">https://github.com/nytimes/covid-19-data</a></div>
