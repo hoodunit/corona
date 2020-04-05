@@ -62,7 +62,7 @@ const App: React.FC<AppProps> = (props) => {
       <div className="subtitle">New confirmed cases per day, by number of days since 50th case</div>
       <div className="chart-wrapper">
         <LogChart
-          data={record.map(dropWhileBelow("newCases", 50))(selectedData)}
+          data={record.map(dropWhileBelowCumulative("newCases", 50))(selectedData)}
           metric="newCases"
         />
       </div>
