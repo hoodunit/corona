@@ -14,7 +14,6 @@ export const encodeRoute = (route: Route): string => {
   }
   const lastDateStr = DateFns.format("yyyy-MM-dd")(route.lastDate)
   const selectedStr = route.selected.map(encodeURIComponent).join(",")
-  console.log({selectedStr, selected: route.selected})
   return `#${lastDateKey}=${lastDateStr}&${selectedKey}=${selectedStr}`
 }
 
