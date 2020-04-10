@@ -189,7 +189,7 @@ const CountryLine: React.FC<CountryLineProps> = (props) => {
 type ChartElem = {}
 
 const toChartData = (data: CoronaData, metric: string, scale: Scale, xAxisType: XAxisType, minMetric: number, dataIsCumulative: boolean): Array<ChartElem> => {
-  const droppedBelowMetric = scale === "linear" ? data : dropBelowMetric(data, metric, minMetric, dataIsCumulative)
+  const droppedBelowMetric = xAxisType === "time-based" ? data : dropBelowMetric(data, metric, minMetric, dataIsCumulative)
   switch (xAxisType) {
     case "relative": return toChartDataRelative(droppedBelowMetric, metric, scale)
     case "time-based": return toChartDataTimeBased(droppedBelowMetric, metric, scale)
