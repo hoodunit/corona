@@ -15,6 +15,7 @@ import {
   XAxis,
   YAxis
 } from "recharts"
+import { ChartStar } from "./ChartStar"
 import { CoronaData, DateEntry } from "./data"
 import { hashCode } from "./hash"
 import * as DateFns from "date-fns/fp"
@@ -147,7 +148,7 @@ const CountryLine: React.FC<CountryLineProps> = (props) => {
     name={props.key}
     stroke={props.stroke}
     strokeWidth={2}
-    dot={dotProps => <Star {...dotProps} date={lockdownDate} placeKey={props.key} />}
+    dot={dotProps => <ChartStar {...dotProps} date={lockdownDate} placeKey={props.key} />}
     activeDot={{ r: 4, stroke: "black", strokeWidth: 1 }}
     connectNulls
   />
@@ -192,38 +193,4 @@ const maxInArr = (vals: Array<number>): number => {
     option.map(getMax),
     option.getOrElse(() => 0)
   )
-}
-
-const Star = (props: any) => {
-  if (!props.value) {
-    return null
-  }
-  const diameter = 3
-  const date = props.date
-  const dataDate = props.payload[props.placeKey]?.date
-  if (date && DateFns.isEqual(date, dataDate)) {
-    return (
-      <svg width={diameter} height={diameter} style={{"overflow": "visible"}}>
-        <text
-          stroke="black"
-          fill={props.stroke}
-          x={props.cx - 7}
-          y={props.cy + 6}>{"\u2605"}
-        </text>
-      </svg>
-    )
-  } else {
-    const radius = 3
-    const dotDiam = radius * 2
-    return (<svg width={dotDiam} height={dotDiam} style={{"overflow": "visible"}}>
-      <circle
-        cx={props.cx}
-        cy={props.cy}
-        r={radius}
-        stroke={props.stroke}
-        strokeWidth="1"
-        fill={props.stroke}
-      />
-    </svg>)
-  }
 }
