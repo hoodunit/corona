@@ -18,6 +18,7 @@ import {
 import { CoronaData, DateEntry } from "./data"
 import { hashCode } from "./hash"
 import * as DateFns from "date-fns/fp"
+import { Scale, ScaleToggle } from "./ScaleToggle"
 
 const colors = [
   "black",
@@ -122,27 +123,6 @@ export const LogChart: React.FC<LogChartProps> = (props) => {
       </ResponsiveContainer>
     </div>
   )
-}
-
-type ScaleToggleProps = {
-  onToggle: (scale: Scale) => void
-  selected: Scale
-}
-
-type Scale = "linear" | "log"
-
-const ScaleToggle: React.FC<ScaleToggleProps> = (props) => {
-  const otherScale: Scale = props.selected === "linear" ? "log" : "linear"
-  return <div
-    className="scale-toggle"
-    onClick={() => props.onToggle(otherScale)}>{scaleTitle(props.selected)} </div>
-}
-
-const scaleTitle = (scale: Scale): string => {
-  switch(scale) {
-    case "linear": return "Linear"
-    case "log": return "Logarithmic"
-  }
 }
 
 const lineScale = (scale: Scale): ScaleType => {
