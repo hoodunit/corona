@@ -57,10 +57,31 @@ body {
 .toggle {
   cursor: pointer;
   margin: 0 16px 0 0;
+  display: flex;
 }
 
 .toggle:last-child {
   margin-right: 0;
+
+}
+
+.toggle__left {
+  border-radius: 4px 0 0 4px;
+}
+
+.toggle__right {
+  border-radius: 0 4px 4px 0;
+}
+
+.toggle__left, .toggle__right {
+  background-color: #eee;
+  padding: 8px;
+  color: #999;
+}
+
+.toggle__left--selected, .toggle__right--selected {
+  background-color: #a9d1ff;
+  color: #000;
 }
 
 .button {

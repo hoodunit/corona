@@ -11,12 +11,8 @@ export const XAxisTypeToggle: React.FC<XAxisTypeToggleProps> = (props) => {
   const otherType: XAxisType = props.selected === "relative" ? "time-based" : "relative"
   return <div
     className="toggle"
-    onClick={() => props.onToggle(otherType)}>{title(props.selected)} </div>
-}
-
-const title = (xAxisType: XAxisType): string => {
-  switch(xAxisType) {
-    case "relative": return "Relative"
-    case "time-based": return "Time-based"
-  }
+    onClick={() => props.onToggle(otherType)}>
+    <div className={`toggle__left ${props.selected === "relative" ? "toggle__left--selected" : ""}`}>Relative</div>
+    <div className={`toggle__right ${props.selected === "time-based" ? "toggle__right--selected" : ""}`}>Time-based</div>
+  </div>
 }

@@ -11,7 +11,10 @@ export const ScaleToggle: React.FC<ScaleToggleProps> = (props) => {
   const otherScale: Scale = props.selected === "linear" ? "log" : "linear"
   return <div
     className="toggle"
-    onClick={() => props.onToggle(otherScale)}>{scaleTitle(props.selected)} </div>
+    onClick={() => props.onToggle(otherScale)}>
+    <div className={`toggle__left ${props.selected === "log" ? "toggle__left--selected" : ""}`}>Logarithmic</div>
+    <div className={`toggle__right ${props.selected === "linear" ? "toggle__right--selected" : ""}`}>Linear</div>
+  </div>
 }
 
 const scaleTitle = (scale: Scale): string => {
