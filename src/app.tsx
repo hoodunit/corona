@@ -43,7 +43,7 @@ const App: React.FC<AppProps> = (props) => {
   const selectedData = filterSelected(props.data)
   const dateRange: DateRange = pipe(
     dataDateRange(selectedData),
-    option.getOrElse<DateRange>(() => { throw new Error("No date range!??") })
+    option.getOrElse<DateRange>(() => ({start: new Date(), end: new Date()}))
   )
   const [lastDate, setLastDate] = useState(dateRange.end)
   const filteredData = record.map(array.filter((d: DateEntry) => {
