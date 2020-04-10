@@ -6,9 +6,9 @@ import { TaskEither } from "fp-ts/lib/TaskEither"
 import * as t from "io-ts"
 import { DateFromString, NumberFromString } from "./codecs"
 import Papa = require("papaparse")
-import * as fetchPonyfill from "fetch-ponyfill"
 import * as DateFns from "date-fns/fp"
 import { Either } from "fp-ts/lib/Either"
+import { fetchPony } from "./fetch"
 import { validate, validateOrThrow } from "./validation"
 
 export type CoronaData = {
@@ -23,8 +23,6 @@ export type DateEntry = {
   newDeaths: number | null
   newCases: number | null
 }
-
-const fetchPony = fetchPonyfill({}).fetch
 
 const RawDateEntrySpec = t.exact(t.type({
   date: DateFromString,
