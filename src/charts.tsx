@@ -2,7 +2,6 @@ import { array, option, record } from "fp-ts"
 import { ordNumber } from "fp-ts/es6/Ord"
 import * as NonEmptyArray from "fp-ts/lib/NonEmptyArray"
 import { pipe } from "fp-ts/lib/pipeable"
-import { useState } from "react"
 import * as React from "react"
 import {
   CartesianGrid,

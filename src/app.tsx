@@ -4,7 +4,6 @@ import { eqString } from "fp-ts/lib/Eq"
 import { useState } from "react"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { Chart } from "./charts"
 import { ChartSection } from "./ChartSection"
 import { CoronaData, DateEntry, getData } from "./data"
 import { dataDateRange, DateRange } from "./dataHelpers"
@@ -54,7 +53,7 @@ const App: React.FC<AppProps> = (props) => {
   return (<div className="content">
     <div className="section">
       <div className="title">Covid-19 Metrics</div>
-      <SelectionBar onSelected={setSelected} />
+      <SelectionBar data={props.data} onSelected={setSelected} />
       <div className="date-selector">
         <div className="date-selector__titles">
           <div className="date-selector__titles__title">Last date shown: {DateFns.format("MMM d yyyy")(lastDate)}</div>
