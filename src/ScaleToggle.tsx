@@ -10,7 +10,7 @@ export type Scale = "linear" | "log"
 export const ScaleToggle: React.FC<ScaleToggleProps> = (props) => {
   const otherScale: Scale = props.selected === "linear" ? "log" : "linear"
   return <div
-    className="scale-toggle"
+    className="toggle"
     onClick={() => props.onToggle(otherScale)}>{scaleTitle(props.selected)} </div>
 }
 

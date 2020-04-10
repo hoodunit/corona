@@ -4,7 +4,8 @@ import { eqString } from "fp-ts/lib/Eq"
 import { useState } from "react"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
-import { LogChart } from "./charts"
+import { Chart } from "./charts"
+import { ChartSection } from "./ChartSection"
 import { CoronaData, DateEntry, getData } from "./data"
 import { dataDateRange, DateRange } from "./dataHelpers"
 import { DateSlider } from "./DateSlider"
@@ -73,56 +74,51 @@ const App: React.FC<AppProps> = (props) => {
         onChange={setSelected}
       />
     </div>
-    <div className="section">
-      <div className="title">Covid-19 New Deaths</div>
-      <div className="subtitle">New deaths per day, by number of days since 5th death</div>
-      <div className="chart-wrapper">
-        <LogChart
-          data={record.map(dropWhileBelowCumulative("newDeaths", 5))(filteredData)}
-          metric="newDeaths"
-        />
-      </div>
-    </div>
-    <div className="section">
-      <div className="title">Covid-19 New Confirmed Cases</div>
-      <div className="subtitle">New confirmed cases per day, by number of days since 50th case</div>
-      <div className="chart-wrapper">
-        <LogChart
-          data={record.map(dropWhileBelowCumulative("newCases", 50))(filteredData)}
-          metric="newCases"
-        />
-      </div>
-    </div>
-    <div className="section">
-      <div className="title">Covid-19 Deaths</div>
-      <div className="subtitle">Cumulative number of deaths, by number of days since 5th death</div>
-      <div className="chart-wrapper">
-        <LogChart
-          data={record.map(dropWhileBelow("deaths", 5))(filteredData)}
-          metric="deaths"
-        />
-      </div>
-    </div>
-    <div className="section">
-      <div className="title">Covid-19 Confirmed Cases</div>
-      <div className="subtitle">Cumulative number of confirmed cases, by number of days since 50th case (logarithmic)</div>
-      <div className="chart-wrapper">
-        <LogChart
-          data={record.map(dropWhileBelow("confirmed", 50))(filteredData)}
-          metric="confirmed"
-        />
-      </div>
-    </div>
-    <div className="section">
-      <div className="title">Covid-19 Confirmed Recoveries</div>
-      <div className="subtitle">Cumulative number of confirmed recoveries, by number of days since 50th recovery (logarithmic)</div>
-      <div className="chart-wrapper">
-        <LogChart
-          data={record.map(dropWhileBelow("recovered", 50))(filteredData)}
-          metric="confirmed"
-        />
-      </div>
-    </div>
+    <ChartSection
+      title="Covid-19 New Deaths"
+      subtitleRelative="New deaths per day, by number of days since 5th death"
+      subtitleTimeBased="New deaths per day by date"
+      data={filteredData}
+      metric="newDeaths"
+      minMetric={5}
+      dataIsCumulative={false}
+    />
+    <ChartSection
+      title="Covid-19 New Confirmed Cases"
+      subtitleRelative="New confirmed cases per day, by number of days since 50th case"
+      subtitleTimeBased="New confirmed cases by date"
+      data={filteredData}
+      metric="newCases"
+      minMetric={50}
+      dataIsCumulative={false}
+    />
+    <ChartSection
+      title="Covid-19 Deaths"
+      subtitleRelative="Cumulative number of deaths, by number of days since 5th death"
+      subtitleTimeBased="Cumulative number of deaths by date"
+      data={filteredData}
+      metric="deaths"
+      minMetric={5}
+      dataIsCumulative={true}
+    />
+    <ChartSection
+      title="Covid-19 Confirmed Cases"
+      subtitleRelative="Cumulative number of confirmed cases, by number of days since 50th case"
+      subtitleTimeBased="Cumulative number of confirmed cases by date"
+      data={filteredData}
+      metric="confirmed"
+      minMetric={50}
+      dataIsCumulative={true}
+    />
+    <ChartSection
+      title="Covid-19 Confirmed Recoveries"
+      subtitleRelative="Cumulative number of confirmed recoveries, by number of days since 50th recovery"
+      subtitleTimeBased="Cumulative number of confirmed recoveries by date"
+      data={filteredData}
+      metric="recovered"
+      minMetric={50}
+      dataIsCumulative={true}
+    />
     <div className="section">
       <div className="title">Data Sources</div>
       <div className="paragraph">Country-level data: <a href="https://github.com/pomber/covid19">https://github.com/pomber/covid19</a></div>
@@ -130,28 +126,6 @@ const App: React.FC<AppProps> = (props) => {
       <div className="paragraph">Source code: <a href="https://github.com/hoodunit/corona">https://github.com/hoodunit/corona</a></div>
     </div>
   </div>)
-}
-
-const dropWhileBelow = (metric: string, min: number) => (arr: Array<DateEntry>): Array<DateEntry> => {
-  const isBelowMetric = (d: DateEntry) => d[metric] !== null && (d[metric] < min)
-  return array.dropLeftWhile(isBelowMetric)(arr)
-}
-
-type PartialSum = {
-  entries: Array<DateEntry>
-  sum: number
-}
-
-const dropWhileBelowCumulative = (metric: string, min: number) => (arr: Array<DateEntry>): Array<DateEntry> => {
-  const drop = ({entries, sum}: PartialSum, next: DateEntry) => {
-    const newSum = sum + (next[metric] || 0)
-    if (newSum < min) {
-      return {entries: [], sum: newSum}
-    }
-    return {entries: entries.concat(next), sum: newSum}
-  }
-  const {entries} = array.reduce({entries: [], sum: 0}, drop)(arr)
-  return entries
 }
 
 const startApp = () => {

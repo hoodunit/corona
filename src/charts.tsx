@@ -17,9 +17,11 @@ import {
 } from "recharts"
 import { ChartStar } from "./ChartStar"
 import { CoronaData, DateEntry } from "./data"
+import { dataDateRange, DateRange } from "./dataHelpers"
 import { hashCode } from "./hash"
 import * as DateFns from "date-fns/fp"
 import { Scale, ScaleToggle } from "./ScaleToggle"
+import { XAxisTypeToggle } from "./XAxisTypeToggle"
 
 const colors = [
   "black",
@@ -69,20 +71,34 @@ const placeColors = {
   "US-Washington-Clark": colors[12],
 }
 
-type LogChartProps = {
+export type ChartProps = {
   data: CoronaData
   metric: keyof DateEntry
+  minMetric: number
+  dataIsCumulative: boolean
+  scale: Scale
+  setScale: (scale: Scale) => void
+  xAxisType: XAxisType
+  setXAxisType: (xAxisType: XAxisType) => void
 }
 
-export const LogChart: React.FC<LogChartProps> = (props) => {
-  const chartData = toChartData(props.data, props.metric)
-  const [scale, setScale] = useState<Scale>("log")
+export type XAxisType = "relative" | "time-based"
+
+export const Chart: React.FC<ChartProps> = (props) => {
+  const chartData = toChartData(props.data, props.metric, props.scale, props.xAxisType, props.minMetric, props.dataIsCumulative)
+  const dataKey = props.xAxisType === "relative" ? "day" : "date"
   return (
-    <div className="log-chart-wrapper">
-      <ScaleToggle
-        onToggle={setScale}
-        selected={scale}
-      />
+    <div className="chart">
+      <div className="chart__toggles">
+        <ScaleToggle
+          onToggle={props.setScale}
+          selected={props.scale}
+        />
+        <XAxisTypeToggle
+          onToggle={props.setXAxisType}
+          selected={props.xAxisType}
+        />
+      </div>
       <ResponsiveContainer width="100%" height={600}>
         <LineChart
           data={chartData}
@@ -92,23 +108,39 @@ export const LogChart: React.FC<LogChartProps> = (props) => {
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
-            dataKey="day"
+            dataKey={dataKey}
             domain={["auto", "dataMax"]}
+            tickFormatter={(value: any) => {
+              switch (props.xAxisType) {
+                case "relative": return value
+                case "time-based": return monthAndDay(new Date(value))
+              }
+            }}
           />
           <YAxis
             domain={["auto", "auto"]}
-            scale={lineScale(scale)}
+            scale={lineScale(props.scale)}
           />
           <Tooltip
             formatter={(value: any, name: any, props: any) => {
               const date = props.payload[name].date
-              const fmt = DateFns.format("MMM d")
-              return [`${value} (${fmt(date)})`, name]
+              if (props.xAxisType === "relative") {
+                return [`${value} (${monthAndDay(date)})`, name]
+              } else {
+                return [`${value}`, name]
+              }
             }}
             itemSorter={(item, b) => {
               return -item.value as any
             }}
-            labelFormatter={(v: any) => `Day ${v}`}
+            labelFormatter={(v: any) => {
+              switch (props.xAxisType) {
+                case "relative": return `Day ${v}`
+                case "time-based": {
+                  return monthAndDay(new Date(v))
+                }
+              }
+            }}
           />
           <Legend />
           { record.keys(props.data).map(key => {
@@ -156,12 +188,63 @@ const CountryLine: React.FC<CountryLineProps> = (props) => {
 
 type ChartElem = {}
 
-const toChartData = (data: CoronaData, metric: string): Array<ChartElem> => {
-  const zeroMetricToNull = (d: DateEntry) => ({...d, [metric]: d[metric] === 0 ? null : d[metric]})
+const toChartData = (data: CoronaData, metric: string, scale: Scale, xAxisType: XAxisType, minMetric: number, dataIsCumulative: boolean): Array<ChartElem> => {
+  const droppedBelowMetric = scale === "linear" ? data : dropBelowMetric(data, metric, minMetric, dataIsCumulative)
+  switch (xAxisType) {
+    case "relative": return toChartDataRelative(droppedBelowMetric, metric, scale)
+    case "time-based": return toChartDataTimeBased(droppedBelowMetric, metric, scale)
+  }
+}
+
+const dropBelowMetric = (data: CoronaData, metric: string, minMetric: number, dataIsCumulative: boolean): CoronaData => {
+  if (dataIsCumulative) {
+    return record.map(dropWhileBelow(metric, minMetric))(data)
+  } else {
+    return record.map(dropWhileBelowCumulative(metric, minMetric))(data)
+  }
+}
+
+const toChartDataTimeBased = (data: CoronaData, metric: string, scale: Scale): Array<ChartElem> => {
+  const zeroMetricToNull = (d: DateEntry) => ({...d, [metric]: d[metric] === 0 && scale === "log" ? null : d[metric]})
+  const zeroToNull = record.map(array.map(zeroMetricToNull))
+  const zeroed = zeroToNull(data)
+  return zipDates(zeroed)
+}
+
+const toChartDataRelative = (data: CoronaData, metric: string, scale: Scale): Array<ChartElem> => {
+  const zeroMetricToNull = (d: DateEntry) => ({...d, [metric]: d[metric] === 0 && scale === "log" ? null : d[metric]})
   const zeroToNull = record.map(array.map(zeroMetricToNull))
   const zeroed = zeroToNull(data)
   const zipped = zipDays(zeroed)
   return zipped
+}
+
+const zipDates = (data: CoronaData): Array<ChartElem> => {
+  const dateRange = option.getOrElse<DateRange | undefined>(() => undefined)(dataDateRange(data))
+  if (!dateRange) {
+    return []
+  }
+  const dates = pipe(
+    array.range(0, DateFns.differenceInDays(dateRange.start, dateRange.end)),
+    array.map((day: number) => DateFns.addDays(day)(dateRange.start))
+  )
+  const keys = record.keys(data)
+  return pipe(
+    dates,
+    array.map((date: Date) => {
+      const vals = {}
+      keys.forEach(key => {
+        const dateData = pipe(
+          data[key],
+          array.findFirst((d: DateEntry) => DateFns.isEqual(d.date, date)),
+          option.getOrElse<DateEntry | undefined>(() => undefined)
+        )
+        vals[key] = dateData
+      })
+      vals["date"] = date.getTime()
+      return vals
+    })
+  )
 }
 
 const zipDays = (data: CoronaData): Array<ChartElem> => {
@@ -193,4 +276,30 @@ const maxInArr = (vals: Array<number>): number => {
     option.map(getMax),
     option.getOrElse(() => 0)
   )
+}
+
+const monthAndDay = (date: Date): string => {
+  return DateFns.format("MMM d")(date)
+}
+
+const dropWhileBelow = (metric: string, min: number) => (arr: Array<DateEntry>): Array<DateEntry> => {
+  const isBelowMetric = (d: DateEntry) => d[metric] !== null && (d[metric] < min)
+  return array.dropLeftWhile(isBelowMetric)(arr)
+}
+
+type PartialSum = {
+  entries: Array<DateEntry>
+  sum: number
+}
+
+const dropWhileBelowCumulative = (metric: string, min: number) => (arr: Array<DateEntry>): Array<DateEntry> => {
+  const drop = ({entries, sum}: PartialSum, next: DateEntry) => {
+    const newSum = sum + (next[metric] || 0)
+    if (newSum < min) {
+      return {entries: [], sum: newSum}
+    }
+    return {entries: entries.concat(next), sum: newSum}
+  }
+  const {entries} = array.reduce({entries: [], sum: 0}, drop)(arr)
+  return entries
 }
