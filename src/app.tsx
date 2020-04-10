@@ -1,15 +1,19 @@
-import { array, either, record } from "fp-ts"
+import { array, either, option, record } from "fp-ts"
+import { pipe } from "fp-ts/es6/pipeable"
 import { eqString } from "fp-ts/lib/Eq"
 import { useState } from "react"
 import * as React from "react"
 import * as ReactDOM from "react-dom"
 import { LogChart } from "./charts"
 import { CoronaData, DateEntry, getData } from "./data"
+import { dataDateRange, DateRange } from "./dataHelpers"
+import { DateSlider } from "./DateSlider"
 import { LoadingIcon } from "./LoadingIcon"
 import { decodeRoute, encodeRoute, Route } from "./route"
 import { SelectionBar } from "./SelectionBar"
 import { smallPlaces } from "./selections"
 import { PlaceSelector } from "./selector"
+import * as DateFns from "date-fns/fp"
 
 type AppProps = {
   data?: CoronaData
@@ -20,6 +24,7 @@ type AppProps = {
 const defaultSelected = smallPlaces
 
 const defaultRoute = {
+  lastDate: new Date(),
   selected: defaultSelected
 }
 
@@ -33,14 +38,35 @@ const App: React.FC<AppProps> = (props) => {
   window["data"] = props.data;
   const allSelectable = record.keys(props.data)
   const [selected, setSelected] = useState(props.route.selected)
-  window.location.hash = encodeRoute({selected})
   const isSelected = (key: string) => array.elem(eqString)(key, selected)
   const filterSelected = record.filterWithIndex((index: string, entries: Array<DateEntry>) => isSelected(index))
   const selectedData = filterSelected(props.data)
-  return (<div>
+  const dateRange: DateRange = pipe(
+    dataDateRange(selectedData),
+    option.getOrElse<DateRange>(() => { throw new Error("No date range!??") })
+  )
+  const [lastDate, setLastDate] = useState(dateRange.end)
+  const filteredData = record.map(array.filter((d: DateEntry) => {
+    return DateFns.isBefore(lastDate)(d.date) || DateFns.isEqual(d.date, lastDate)
+  }))(selectedData)
+  window.location.hash = encodeRoute({lastDate, selected})
+  return (<div className="content">
     <div className="section">
       <div className="title">Covid-19 Metrics</div>
       <SelectionBar onSelected={setSelected} />
+      <div className="date-selector">
+        <div className="date-selector__titles">
+          <div className="date-selector__titles__title">Last date shown: {DateFns.format("MMM d yyyy")(lastDate)}</div>
+          <div className="button" onClick={() => setLastDate(dateRange.end)}>Today</div>
+          <div className="button" onClick={() => setLastDate(DateFns.subWeeks(1, dateRange.end))}>One week ago</div>
+          <div className="button" onClick={() => setLastDate(DateFns.subMonths(1, dateRange.end))}>One month ago</div>
+        </div>
+        <DateSlider
+          range={dateRange}
+          selected={lastDate}
+          onSelect={setLastDate}
+        />
+      </div>
       <PlaceSelector
         all={allSelectable}
         selected={selected}
@@ -52,7 +78,7 @@ const App: React.FC<AppProps> = (props) => {
       <div className="subtitle">New deaths per day, by number of days since 5th death</div>
       <div className="chart-wrapper">
         <LogChart
-          data={record.map(dropWhileBelowCumulative("newDeaths", 5))(selectedData)}
+          data={record.map(dropWhileBelowCumulative("newDeaths", 5))(filteredData)}
           metric="newDeaths"
         />
       </div>
@@ -62,7 +88,7 @@ const App: React.FC<AppProps> = (props) => {
       <div className="subtitle">New confirmed cases per day, by number of days since 50th case</div>
       <div className="chart-wrapper">
         <LogChart
-          data={record.map(dropWhileBelowCumulative("newCases", 50))(selectedData)}
+          data={record.map(dropWhileBelowCumulative("newCases", 50))(filteredData)}
           metric="newCases"
         />
       </div>
@@ -72,7 +98,7 @@ const App: React.FC<AppProps> = (props) => {
       <div className="subtitle">Cumulative number of deaths, by number of days since 5th death</div>
       <div className="chart-wrapper">
         <LogChart
-          data={record.map(dropWhileBelow("deaths", 5))(selectedData)}
+          data={record.map(dropWhileBelow("deaths", 5))(filteredData)}
           metric="deaths"
         />
       </div>
@@ -82,7 +108,7 @@ const App: React.FC<AppProps> = (props) => {
       <div className="subtitle">Cumulative number of confirmed cases, by number of days since 50th case (logarithmic)</div>
       <div className="chart-wrapper">
         <LogChart
-          data={record.map(dropWhileBelow("confirmed", 50))(selectedData)}
+          data={record.map(dropWhileBelow("confirmed", 50))(filteredData)}
           metric="confirmed"
         />
       </div>
@@ -92,7 +118,7 @@ const App: React.FC<AppProps> = (props) => {
       <div className="subtitle">Cumulative number of confirmed recoveries, by number of days since 50th recovery (logarithmic)</div>
       <div className="chart-wrapper">
         <LogChart
-          data={record.map(dropWhileBelow("recovered", 50))(selectedData)}
+          data={record.map(dropWhileBelow("recovered", 50))(filteredData)}
           metric="confirmed"
         />
       </div>
@@ -117,7 +143,6 @@ type PartialSum = {
 }
 
 const dropWhileBelowCumulative = (metric: string, min: number) => (arr: Array<DateEntry>): Array<DateEntry> => {
-  const isBelowMetric = (d: DateEntry) => d[metric] !== null && (d[metric] < min)
   const drop = ({entries, sum}: PartialSum, next: DateEntry) => {
     const newSum = sum + (next[metric] || 0)
     if (newSum < min) {

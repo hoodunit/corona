@@ -1,32 +1,36 @@
+import * as DateFns from "date-fns/fp"
+
 export type Route = {
+  lastDate: Date
   selected: Array<string>
 }
 
-const prefix = "#selected="
+const lastDateKey = "lastDate"
+const selectedKey = "selected"
 
 export const encodeRoute = (route: Route): string => {
   if (route.selected.length === 0) {
     return ""
   }
-  const selected = route.selected.map(encodeURIComponent).join(",")
-  return `${prefix}${selected}`
+  const lastDateStr = DateFns.format("yyyy-MM-dd")(route.lastDate)
+  const selectedStr = route.selected.map(encodeURIComponent).join(",")
+  console.log({selectedStr, selected: route.selected})
+  return `#${lastDateKey}=${lastDateStr}&${selectedKey}=${selectedStr}`
 }
 
 export const decodeRoute = (hash: string, defaultRoute: Route): Route => {
-  const prefix = "#selected="
-  if (!hash.startsWith(prefix)) {
-    return defaultRoute
-  }
   try {
-    const parseable = hash.substr(prefix.length)
-    const selectedStrs = parseable.split(",")
-    const selected = selectedStrs.map(decodeURIComponent).filter(s => !!s)
-    if (selected.length === 0) {
-      return defaultRoute
-    }
-    return {selected}
+    const parseable = hash.substr(1)
+    const [lastDateEntry, selectedEntry] = parseable.split("&")
+    const lastDateStr = lastDateEntry.substr(lastDateKey.length + 1)
+    const lastDate = DateFns.parse(new Date())("yyyy-MM-dd")(lastDateStr)
+    const selectedStr = selectedEntry.substr(selectedKey.length + 1)
+    const selectedStrs = selectedStr.split(",")
+    const parsedSelected = selectedStrs.map(decodeURIComponent).filter(s => !!s)
+    const selected = parsedSelected.length === 0 ? [] : parsedSelected
+    return {lastDate, selected}
   } catch (e) {
-    console.error(e)
+    console.error(`Error parsing route from hash '${hash}'`, e)
     return defaultRoute
   }
 }

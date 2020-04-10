@@ -12,6 +12,10 @@ body {
   height: 100%;
 }
 
+.content {
+  margin: 16px 8px;
+}
+
 .title {
   font-size: 22px;
   margin: 0 0 22px 0;
@@ -119,4 +123,37 @@ body {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.slider-wrapper {
+  height: 40px;
+  margin: 0 16px;
+  position: relative;
+}
+
+.rc-slider {
+  position: initial;
+}
+
+.date-selector {
+
+}
+
+.date-selector__titles {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 16px 0;
+}
+
+.date-selector__titles__title {
+  margin-right: 16px;
+}
+
+.date-selector .button {
+  margin-right: 16px;
+}
+
+.date-selector .button:last-child {
+  margin-right: 0;
 }
