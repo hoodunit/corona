@@ -12,7 +12,7 @@ import { LoadingIcon } from "./ui/LoadingIcon"
 import { decodeRoute, encodeRoute, Route } from "./route"
 import { SelectionBar } from "./ui/SelectionBar"
 import { smallPlaces } from "./selections"
-import { PlaceSelector } from "./ui/selector"
+import { PlaceSelector } from "./ui/PlaceSelector"
 import * as DateFns from "date-fns/fp"
 
 type AppProps = {

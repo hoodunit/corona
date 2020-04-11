@@ -1,6 +1,6 @@
 import { useState } from "react"
 import * as React from "react"
-import { Chart, ChartProps, XAxisType } from "./charts"
+import { Chart, XAxisType } from "./Chart"
 import { CoronaData, DateEntry } from "../data"
 import { Scale } from "./ScaleToggle"
 
