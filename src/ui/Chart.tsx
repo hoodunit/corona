@@ -121,8 +121,8 @@ export const Chart: React.FC<ChartProps> = (props) => {
             scale={lineScale(props.scale)}
           />
           <Tooltip
-            formatter={(value: any, name: any, props: any) => {
-              const date = props.payload[name].date
+            formatter={(value: any, name: any, formatterProps: any) => {
+              const date = formatterProps.payload[name].date
               if (props.xAxisType === "relative") {
                 return [`${value} (${monthAndDay(date)})`, name]
               } else {
