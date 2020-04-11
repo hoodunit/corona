@@ -1,6 +1,6 @@
 import * as React from "react"
-import { CoronaData } from "./data"
-import { topByDeaths } from "./dataHelpers"
+import { CoronaData } from "../data"
+import { topByDeaths } from "../dataHelpers"
 import {
   largeAndSmall,
   epicenters,
@@ -9,7 +9,7 @@ import {
   nordicsPlus,
   europeanUnion,
   finlandSweden
-} from "./selections"
+} from "../selections"
 
 type SelectionOption = {
   label: string

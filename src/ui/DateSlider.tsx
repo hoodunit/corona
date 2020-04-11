@@ -3,7 +3,7 @@ import { pipe } from "fp-ts/es6/pipeable"
 import { getFirstSemigroup } from "fp-ts/lib/Semigroup"
 import { default as Slider } from "rc-slider"
 import * as React from "react"
-import { DateRange } from "./dataHelpers"
+import { DateRange } from "../dataHelpers"
 import * as DateFns from "date-fns/fp"
 
 export type DateSliderProps = {

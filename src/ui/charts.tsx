@@ -15,9 +15,9 @@ import {
   YAxis
 } from "recharts"
 import { ChartStar } from "./ChartStar"
-import { CoronaData, DateEntry } from "./data"
-import { dataDateRange, DateRange } from "./dataHelpers"
-import { hashCode } from "./hash"
+import { CoronaData, DateEntry } from "../data"
+import { dataDateRange, DateRange } from "../dataHelpers"
+import { hashCode } from "../hash"
 import * as DateFns from "date-fns/fp"
 import { Scale, ScaleToggle } from "./ScaleToggle"
 import { XAxisTypeToggle } from "./XAxisTypeToggle"
