@@ -1,24 +1,14 @@
+import * as DateFns from "date-fns/fp"
 import { array, option, record } from "fp-ts"
 import { ordNumber } from "fp-ts/es6/Ord"
 import * as NonEmptyArray from "fp-ts/lib/NonEmptyArray"
 import { pipe } from "fp-ts/lib/pipeable"
 import * as React from "react"
-import {
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  ScaleType,
-  Tooltip,
-  XAxis,
-  YAxis
-} from "recharts"
-import { ChartStar } from "./ChartStar"
+import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, ScaleType, Tooltip, XAxis, YAxis } from "recharts"
 import { CoronaData, DateEntry } from "../data"
 import { dataDateRange, DateRange } from "../dataHelpers"
 import { hashCode } from "../hash"
-import * as DateFns from "date-fns/fp"
+import { ChartStar } from "./ChartStar"
 import { Scale, ScaleToggle } from "./ScaleToggle"
 import { XAxisTypeToggle } from "./XAxisTypeToggle"
 
@@ -189,38 +179,48 @@ const CountryLine: React.FC<CountryLineProps> = (props) => {
   />
 }
 
-type ChartElem = {}
+type ChartElem = {
+  day?: number
+  date?: number
+}
 
 const toChartData = (options: ChartOptions, data: CoronaData): Array<ChartElem> => {
-  const {xAxisType, metric, minMetric, dataIsCumulative, scale} = options
-  const droppedBelowMetric = xAxisType === "time-based" ? data : dropBelowMetric(data, metric, minMetric, dataIsCumulative)
-  switch (xAxisType) {
-    case "relative": return toChartDataRelative(droppedBelowMetric, metric, scale)
-    case "time-based": return toChartDataTimeBased(droppedBelowMetric, metric, scale)
-  }
+  return pipe(
+    data,
+    dropBelowMetric(options),
+    zerosToNull(options),
+    zipToChartData(options)
+  )
 }
 
-const dropBelowMetric = (data: CoronaData, metric: string, minMetric: number, dataIsCumulative: boolean): CoronaData => {
-  if (dataIsCumulative) {
-    return record.map(dropWhileBelow(metric, minMetric))(data)
+const dropBelowMetric = (options: ChartOptions): (data: CoronaData) => CoronaData => {
+  if (options.xAxisType === "time-based"){
+    return (a => a)
+  }
+  if (options.dataIsCumulative) {
+    return record.map(dropWhileBelow(options.metric, options.minMetric))
   } else {
-    return record.map(dropWhileBelowCumulative(metric, minMetric))(data)
+    return record.map(dropWhileBelowCumulative(options.metric, options.minMetric))
   }
 }
 
-const toChartDataTimeBased = (data: CoronaData, metric: string, scale: Scale): Array<ChartElem> => {
-  const zeroMetricToNull = (d: DateEntry) => ({...d, [metric]: d[metric] === 0 && scale === "log" ? null : d[metric]})
-  const zeroToNull = record.map(array.map(zeroMetricToNull))
-  const zeroed = zeroToNull(data)
-  return zipDates(zeroed)
+const zerosToNull = (options: ChartOptions): (data: CoronaData) => CoronaData => {
+  if (options.scale === "log") {
+    return record.map(array.map(zeroMetricToNull(options.metric)))
+  } else {
+    return (a => a)
+  }
 }
 
-const toChartDataRelative = (data: CoronaData, metric: string, scale: Scale): Array<ChartElem> => {
-  const zeroMetricToNull = (d: DateEntry) => ({...d, [metric]: d[metric] === 0 && scale === "log" ? null : d[metric]})
-  const zeroToNull = record.map(array.map(zeroMetricToNull))
-  const zeroed = zeroToNull(data)
-  const zipped = zipDays(zeroed)
-  return zipped
+const zeroMetricToNull = (metric: string) => (d: DateEntry) => {
+  return {...d, [metric]: d[metric] === 0 ? null : d[metric]}
+}
+
+const zipToChartData = (options: ChartOptions): (data: CoronaData) => Array<ChartElem> => {
+  switch (options.xAxisType) {
+    case "relative": return zipDays
+    case "time-based": return zipDates
+  }
 }
 
 const zipDates = (data: CoronaData): Array<ChartElem> => {
