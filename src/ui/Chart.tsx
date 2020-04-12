@@ -8,6 +8,7 @@ import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, ScaleType,
 import { CoronaData, DateEntry } from "../data"
 import { dataDateRange, DateRange } from "../dataHelpers"
 import { hashCode } from "../hash"
+import { Averaging, AveragingToggle } from "./AveragingToggle"
 import { ChartStar } from "./ChartStar"
 import { Scale, ScaleToggle } from "./ScaleToggle"
 import { XAxisTypeToggle } from "./XAxisTypeToggle"
@@ -62,12 +63,14 @@ const placeColors = {
 
 export type ChartProps = {
   data: CoronaData
+  setAveraging: (averaging: Averaging) => void
   setScale: (scale: Scale) => void
   setXAxisType: (xAxisType: XAxisType) => void
   options: ChartOptions
 }
 
 export type ChartOptions = {
+  averaging: Averaging
   metric: keyof DateEntry
   minMetric: number
   dataIsCumulative: boolean
@@ -90,6 +93,10 @@ export const Chart: React.FC<ChartProps> = (props) => {
         <XAxisTypeToggle
           onToggle={props.setXAxisType}
           selected={props.options.xAxisType}
+        />
+        <AveragingToggle
+          onToggle={props.setAveraging}
+          selected={props.options.averaging}
         />
       </div>
       <ResponsiveContainer width="100%" height={600}>
@@ -141,7 +148,7 @@ export const Chart: React.FC<ChartProps> = (props) => {
             const color = placeColors[key] ?? colors[hash]
             return CountryLine({
                 key,
-                metric: props.options.metric,
+                metric: props.options.averaging === "none" ? props.options.metric : avgKey(props.options.metric),
                 stroke: color
               })
           })}
@@ -182,14 +189,15 @@ const CountryLine: React.FC<CountryLineProps> = (props) => {
 type ChartElem = {
   day?: number
   date?: number
-}
+} & {[k: string]: DateEntry}
 
 const toChartData = (options: ChartOptions, data: CoronaData): Array<ChartElem> => {
   return pipe(
     data,
     dropBelowMetric(options),
     zerosToNull(options),
-    zipToChartData(options)
+    zipToChartData(options),
+    applyAveraging(options),
   )
 }
 
@@ -306,4 +314,36 @@ const dropWhileBelowCumulative = (metric: string, min: number) => (arr: Array<Da
   }
   const {entries} = array.reduce({entries: [], sum: 0}, drop)(arr)
   return entries
+}
+
+const applyAveraging = (options: ChartOptions) => (data: Array<ChartElem>): Array<ChartElem> => {
+  if (options.averaging === "none") {
+    return data
+  }
+  const averageVal = (prev: Array<ChartElem>, next: ChartElem): Array<ChartElem> => {
+    const averageVals = (key: string, entry: DateEntry): DateEntry => {
+      if (key === "day" || key === "date") {
+        return entry
+      }
+      if (!entry) {
+        return entry
+      }
+      const currentVal: number = entry[options.metric] as number || 0
+      const prevVal: number = prev.length > 0 ? (prev[prev.length - 1]?.[key]?.[options.metric] as number ?? 0) : 0
+      const prevPrevVal: number = prev.length > 1 ? (prev[prev.length - 2]?.[key]?.[options.metric] as number ?? 0) : 0
+      const avg = (currentVal + prevVal + prevPrevVal) / 3
+      const sanitizedAvg = options.scale === "log" && avg === 0 ? null : Math.round(avg * 10) / 10
+      return {
+        ...entry,
+        [avgKey(options.metric)]: sanitizedAvg
+      }
+    }
+    const newNext = record.mapWithIndex(averageVals)(next)
+    return prev.concat(newNext)
+  }
+  return array.reduce([], averageVal)(data)
+}
+
+const avgKey = (metric: string): string => {
+  return `${metric}-avg`
 }

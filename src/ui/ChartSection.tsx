@@ -1,5 +1,6 @@
 import { useState } from "react"
 import * as React from "react"
+import { Averaging } from "./AveragingToggle"
 import { Chart, XAxisType } from "./Chart"
 import { CoronaData, DateEntry } from "../data"
 import { Scale } from "./ScaleToggle"
@@ -15,6 +16,7 @@ export type ChartSectionProps = {
 }
 
 export const ChartSection: React.FC<ChartSectionProps> = (props) => {
+  const [averaging, setAveraging] = useState<Averaging>("none")
   const [scale, setScale] = useState<Scale>("log")
   const [xAxisType, setXAxisType] = useState<XAxisType>("relative")
   return (
@@ -24,9 +26,11 @@ export const ChartSection: React.FC<ChartSectionProps> = (props) => {
       <div className="chart-wrapper">
         <Chart
           data={props.data}
+          setAveraging={setAveraging}
           setScale={setScale}
           setXAxisType={setXAxisType}
           options={{
+            averaging: averaging,
             metric: props.metric,
             minMetric: props.minMetric,
             dataIsCumulative: props.dataIsCumulative,
