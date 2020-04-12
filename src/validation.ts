@@ -1,5 +1,5 @@
 import { either } from "fp-ts"
-import { pipe } from "fp-ts/es6/pipeable"
+import { pipe } from "fp-ts/lib/pipeable"
 import { Either } from "fp-ts/lib/Either"
 import * as t from "io-ts"
 import * as IoTsReporter from "io-ts-reporters"

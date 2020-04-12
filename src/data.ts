@@ -1,5 +1,5 @@
 import { array, either, option, ord, record } from "fp-ts"
-import { pipe } from "fp-ts/es6/pipeable"
+import { pipe } from "fp-ts/lib/pipeable"
 import { sequenceT } from "fp-ts/lib/Apply"
 import { ordNumber } from "fp-ts/lib/Ord"
 import { TaskEither } from "fp-ts/lib/TaskEither"

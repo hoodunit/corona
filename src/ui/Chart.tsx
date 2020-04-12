@@ -1,6 +1,6 @@
 import * as DateFns from "date-fns/fp"
 import { array, option, record } from "fp-ts"
-import { ordNumber } from "fp-ts/es6/Ord"
+import { ordNumber } from "fp-ts/lib/Ord"
 import * as NonEmptyArray from "fp-ts/lib/NonEmptyArray"
 import { pipe } from "fp-ts/lib/pipeable"
 import * as React from "react"

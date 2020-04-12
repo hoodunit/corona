@@ -1,5 +1,5 @@
 import { array, either, option, record } from "fp-ts"
-import { pipe } from "fp-ts/es6/pipeable"
+import { pipe } from "fp-ts/lib/pipeable"
 import { eqString } from "fp-ts/lib/Eq"
 import { useState } from "react"
 import * as React from "react"

@@ -1,8 +1,8 @@
 import { array, nonEmptyArray, option, ord, record } from "fp-ts"
-import { flow } from "fp-ts/es6/function"
-import { Option } from "fp-ts/es6/Option"
-import { Ord, ordDate, ordNumber } from "fp-ts/es6/Ord"
-import { pipe } from "fp-ts/es6/pipeable"
+import { flow } from "fp-ts/lib/function"
+import { Option } from "fp-ts/lib/Option"
+import { Ord, ordDate, ordNumber } from "fp-ts/lib/Ord"
+import { pipe } from "fp-ts/lib/pipeable"
 import { CoronaData, DateEntry } from "./data"
 
 export type DateRange = {

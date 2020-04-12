@@ -1,6 +1,5 @@
 import { array, option, record } from "fp-ts"
-import { pipe } from "fp-ts/es6/pipeable"
-import { getFirstSemigroup } from "fp-ts/lib/Semigroup"
+import { pipe } from "fp-ts/lib/pipeable"
 import { default as Slider } from "rc-slider"
 import * as React from "react"
 import { DateRange } from "../dataHelpers"
