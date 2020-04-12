@@ -1,4 +1,5 @@
 import * as React from "react"
+import { Toggle } from "./Toggle"
 
 export type ScaleToggleProps = {
   onToggle: (scale: Scale) => void
@@ -8,13 +9,13 @@ export type ScaleToggleProps = {
 export type Scale = "linear" | "log"
 
 export const ScaleToggle: React.FC<ScaleToggleProps> = (props) => {
-  const otherScale: Scale = props.selected === "linear" ? "log" : "linear"
-  return <div
-    className="toggle"
-    onClick={() => props.onToggle(otherScale)}>
-    <div className={`toggle__left ${props.selected === "log" ? "toggle__left--selected" : ""}`}>Logarithmic</div>
-    <div className={`toggle__right ${props.selected === "linear" ? "toggle__right--selected" : ""}`}>Linear</div>
-  </div>
+  return <Toggle<"log", "linear">
+    onToggle={props.onToggle}
+    selected={props.selected}
+    left="log"
+    right="linear"
+    title={scaleTitle}
+    />
 }
 
 const scaleTitle = (scale: Scale): string => {
