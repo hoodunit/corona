@@ -24,13 +24,15 @@ export const ChartSection: React.FC<ChartSectionProps> = (props) => {
       <div className="chart-wrapper">
         <Chart
           data={props.data}
-          metric={props.metric}
-          minMetric={props.minMetric}
-          dataIsCumulative={props.dataIsCumulative}
-          scale={scale}
           setScale={setScale}
-          xAxisType={xAxisType}
           setXAxisType={setXAxisType}
+          options={{
+            metric: props.metric,
+            minMetric: props.minMetric,
+            dataIsCumulative: props.dataIsCumulative,
+            scale: scale,
+            xAxisType: xAxisType
+          }}
         />
       </div>
     </div>

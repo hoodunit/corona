@@ -72,30 +72,34 @@ const placeColors = {
 
 export type ChartProps = {
   data: CoronaData
+  setScale: (scale: Scale) => void
+  setXAxisType: (xAxisType: XAxisType) => void
+  options: ChartOptions
+}
+
+export type ChartOptions = {
   metric: keyof DateEntry
   minMetric: number
   dataIsCumulative: boolean
   scale: Scale
-  setScale: (scale: Scale) => void
   xAxisType: XAxisType
-  setXAxisType: (xAxisType: XAxisType) => void
 }
 
 export type XAxisType = "relative" | "time-based"
 
 export const Chart: React.FC<ChartProps> = (props) => {
-  const chartData = toChartData(props.data, props.metric, props.scale, props.xAxisType, props.minMetric, props.dataIsCumulative)
-  const dataKey = props.xAxisType === "relative" ? "day" : "date"
+  const chartData = toChartData(props.options, props.data)
+  const dataKey = props.options.xAxisType === "relative" ? "day" : "date"
   return (
     <div className="chart">
       <div className="chart__toggles">
         <ScaleToggle
           onToggle={props.setScale}
-          selected={props.scale}
+          selected={props.options.scale}
         />
         <XAxisTypeToggle
           onToggle={props.setXAxisType}
-          selected={props.xAxisType}
+          selected={props.options.xAxisType}
         />
       </div>
       <ResponsiveContainer width="100%" height={600}>
@@ -110,7 +114,7 @@ export const Chart: React.FC<ChartProps> = (props) => {
             dataKey={dataKey}
             domain={["auto", "dataMax"]}
             tickFormatter={(value: any) => {
-              switch (props.xAxisType) {
+              switch (props.options.xAxisType) {
                 case "relative": return value
                 case "time-based": return monthAndDay(new Date(value))
               }
@@ -118,12 +122,12 @@ export const Chart: React.FC<ChartProps> = (props) => {
           />
           <YAxis
             domain={["auto", "auto"]}
-            scale={lineScale(props.scale)}
+            scale={lineScale(props.options.scale)}
           />
           <Tooltip
             formatter={(value: any, name: any, formatterProps: any) => {
               const date = formatterProps.payload[name].date
-              if (props.xAxisType === "relative") {
+              if (props.options.xAxisType === "relative") {
                 return [`${value} (${monthAndDay(date)})`, name]
               } else {
                 return [`${value}`, name]
@@ -133,7 +137,7 @@ export const Chart: React.FC<ChartProps> = (props) => {
               return -item.value as any
             }}
             labelFormatter={(v: any) => {
-              switch (props.xAxisType) {
+              switch (props.options.xAxisType) {
                 case "relative": return `Day ${v}`
                 case "time-based": {
                   return monthAndDay(new Date(v))
@@ -147,7 +151,7 @@ export const Chart: React.FC<ChartProps> = (props) => {
             const color = placeColors[key] ?? colors[hash]
             return CountryLine({
                 key,
-                metric: props.metric,
+                metric: props.options.metric,
                 stroke: color
               })
           })}
@@ -187,7 +191,8 @@ const CountryLine: React.FC<CountryLineProps> = (props) => {
 
 type ChartElem = {}
 
-const toChartData = (data: CoronaData, metric: string, scale: Scale, xAxisType: XAxisType, minMetric: number, dataIsCumulative: boolean): Array<ChartElem> => {
+const toChartData = (options: ChartOptions, data: CoronaData): Array<ChartElem> => {
+  const {xAxisType, metric, minMetric, dataIsCumulative, scale} = options
   const droppedBelowMetric = xAxisType === "time-based" ? data : dropBelowMetric(data, metric, minMetric, dataIsCumulative)
   switch (xAxisType) {
     case "relative": return toChartDataRelative(droppedBelowMetric, metric, scale)
