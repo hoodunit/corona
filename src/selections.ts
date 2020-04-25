@@ -19,7 +19,6 @@ export const smallPlaces = [
   "Sweden",
   "US-Arizona",
   "US-Minnesota",
-  "US-New York",
   "US-Washington",
   "US-Minnesota-Hennepin",
   "US-Arizona-Coconino",
@@ -98,7 +97,7 @@ export const nordicsPlus = [
   "Sweden",
   "Norway",
   "Denmark",
-  "Iceland", // data issue?
+  "Iceland",
   "Switzerland",
 ]
 
