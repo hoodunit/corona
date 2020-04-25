@@ -16,7 +16,7 @@ export type ChartSectionProps = {
 }
 
 export const ChartSection: React.FC<ChartSectionProps> = (props) => {
-  const [averaging, setAveraging] = useState<Averaging>("three-day")
+  const [averaging, setAveraging] = useState<Averaging>("seven-day")
   const [scale, setScale] = useState<Scale>("log")
   const [xAxisType, setXAxisType] = useState<XAxisType>("relative")
   return (

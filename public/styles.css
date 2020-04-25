@@ -70,11 +70,15 @@ body {
   border-radius: 4px 0 0 4px;
 }
 
+.toggle__middle {
+  margin: 0 2px;
+}
+
 .toggle__right {
   border-radius: 0 4px 4px 0;
 }
 
-.toggle__left, .toggle__right {
+.toggle__left, .toggle__middle, .toggle__right {
   background-color: #eee;
   padding: 8px;
   color: #999;
@@ -82,7 +86,7 @@ body {
   align-items: center;
 }
 
-.toggle__left--selected, .toggle__right--selected {
+.toggle__left--selected, .toggle__middle--selected, .toggle__right--selected {
   background-color: #a9d1ff;
   color: #000;
 }

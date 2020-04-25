@@ -328,10 +328,8 @@ const applyAveraging = (options: ChartOptions) => (data: Array<ChartElem>): Arra
       if (!entry) {
         return entry
       }
-      const currentVal: number = entry[options.metric] as number || 0
-      const prevVal: number = prev.length > 0 ? (prev[prev.length - 1]?.[key]?.[options.metric] as number ?? 0) : 0
-      const prevPrevVal: number = prev.length > 1 ? (prev[prev.length - 2]?.[key]?.[options.metric] as number ?? 0) : 0
-      const avg = (currentVal + prevVal + prevPrevVal) / 3
+      const numAvgVals = options.averaging === "three-day" ? 3 : 7
+      const avg = averageValues(prev, next, key, options.metric, numAvgVals)
       const sanitizedAvg = options.scale === "log" && avg === 0 ? null : Math.round(avg * 10) / 10
       return {
         ...entry,
@@ -342,6 +340,19 @@ const applyAveraging = (options: ChartOptions) => (data: Array<ChartElem>): Arra
     return prev.concat(newNext)
   }
   return array.reduce([], averageVal)(data)
+}
+
+const averageValues = (prev: Array<ChartElem>, next: ChartElem, key: string, metric: string, numVals: number) => {
+  const elems = prev.concat(next)
+  const valAtIndex = (index: number): number => {
+    return elems[elems.length - index]?.[key]?.[metric] as number ?? 0
+  }
+  const vals = pipe(
+    array.range(0, numVals),
+    array.map(valAtIndex)
+  )
+  const sum = array.reduce(0, (a: number, b: number) => a + b)(vals)
+  return sum / numVals
 }
 
 const avgKey = (metric: string): string => {
