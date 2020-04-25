@@ -19,7 +19,6 @@ export const smallPlaces = [
   "Sweden",
   "US-Arizona",
   "US-Minnesota",
-  "US-Washington",
   "US-Minnesota-Hennepin",
   "US-Arizona-Coconino",
   "US-Washington-Clark",
